@@ -3,19 +3,19 @@
 {
   programs.ssh = {
     enable = true;
-    # デフォルト値に頼らず明示的に設定する
+    # Set things explicitly instead of relying on defaults
     enableDefaultConfig = false;
 
-    # OrbStackのLinux VM/コンテナへ `ssh orb` で接続するため
-    # （Hostブロックより前にincludeされる必要がある）
+    # Lets `ssh orb` reach OrbStack Linux VMs/containers
+    # (must be included before any Host block)
     includes = [ "~/.orbstack/ssh/config" ];
 
     settings."*" = {
-      # 初回使用時に鍵をssh-agentへ自動追加
+      # Automatically add keys to ssh-agent on first use
       AddKeysToAgent = "yes";
-      # 接続維持（60秒ごとにkeepalive）
+      # Keep connections alive (keepalive every 60s)
       ServerAliveInterval = 60;
-      # パスフレーズをmacOSキーチェーンに保存
+      # Store passphrases in the macOS Keychain
       UseKeychain = "yes";
     };
   };

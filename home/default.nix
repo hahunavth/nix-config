@@ -11,16 +11,16 @@
     ./mise.nix
   ];
 
-  # ユーザー情報
+  # User info
   home.username = username;
-  # lib.mkForceを使用しているのは、nix-darwinの既知のバグ（Issue #682）に対処するためです。
+  # lib.mkForce works around a known nix-darwin bug (Issue #682).
   # https://github.com/LnL7/nix-darwin/issues/682
-  # このバグが修正されたら、単に "/Users/${username}" と設定できるようになる可能性があります。
+  # Once that bug is fixed, this may be settable as plain "/Users/${username}".
   home.homeDirectory = lib.mkForce "/Users/${username}";
 
-  # home-managerのバージョン（変更時は注意）
+  # home-manager version (be careful when changing)
   home.stateVersion = "26.05";
 
-  # home-managerの有効化
+  # Enable home-manager
   programs.home-manager.enable = true;
 }

@@ -54,17 +54,17 @@
         username = darwinUser;
       };
 
-      # この設定リポジトリを編集するための開発シェル（nix develop で入る）
+      # Dev shell for editing this config repo (enter with `nix develop`)
       devShells.aarch64-darwin.default = pkgs.mkShell {
         packages = with pkgs; [
-          nixfmt-rfc-style   # フォーマッタ
-          statix             # アンチパターン検出
-          deadnix            # 未使用コード検出
-          nil                # Nix LSP（エディタ補完）
+          nixfmt-rfc-style   # formatter
+          statix             # anti-pattern linter
+          deadnix            # dead-code finder
+          nil                # Nix LSP (editor completion)
         ];
       };
 
-      # `nix fmt` で全.nixファイルを整形
+      # `nix fmt` formats every .nix file
       formatter.aarch64-darwin = pkgs.nixfmt-rfc-style;
     };
 }

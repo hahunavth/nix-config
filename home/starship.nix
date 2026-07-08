@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  # starshipプロンプト（zshに自動で組み込まれる）
+  # starship prompt (automatically wired into zsh)
   programs.starship = {
     enable = true;
     enableZshIntegration = true;

@@ -5,6 +5,6 @@
 
   networking.hostName = hostname;
 
-  # ターゲットプラットフォーム
+  # Target platform
   nixpkgs.hostPlatform = "aarch64-darwin";
 }

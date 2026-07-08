@@ -13,7 +13,7 @@
     };
   };
 
-  # diffを見やすくする
+  # Make diffs easier to read
   programs.delta = {
     enable = true;
     enableGitIntegration = true;

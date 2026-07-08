@@ -21,8 +21,8 @@
       "microsoft-office"       # Word, Excel, PowerPoint, OneNote
       "microsoft-teams"
       "remote-desktop-manager"
-      "orbstack"               # Docker/Linux VMs (Docker Desktop代替)
-      "warp"                   # Warpターミナル
+      "orbstack"               # Docker/Linux VMs (Docker Desktop alternative)
+      "warp"                   # Warp terminal
       "sublime-text"
     ];
   };

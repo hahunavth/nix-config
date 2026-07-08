@@ -1,8 +1,8 @@
 { ... }:
 
 {
-  # home-managerでzshを管理する（~/.zshrcが生成される）
-  # これによりstarship / mise / neovim等のzsh統合が有効になる
+  # Manage zsh with home-manager (generates ~/.zshrc)
+  # This is what enables the zsh integrations for starship / mise / neovim etc.
   programs.zsh = {
     enable = true;
     autosuggestion.enable = true;

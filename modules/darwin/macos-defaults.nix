@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  # Finder設定
+  # Finder settings
   system.defaults.finder = {
     AppleShowAllExtensions = true;
     AppleShowAllFiles = true;
@@ -11,7 +11,7 @@
     ShowStatusBar = true;
   };
 
-  # Dock設定
+  # Dock settings
   system.defaults.dock = {
     autohide = true;
     show-recents = false;

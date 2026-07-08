@@ -7,7 +7,7 @@ let
 in
 {
   # raycast beta
-  # mkBeforeで、home-managerのactivationより前に実行する（リファクタリング前と同じ順序）
+  # mkBefore runs this before the home-manager activation (same order as before the refactor)
   system.activationScripts.postActivation.text = lib.mkBefore ''
     if [ ! -e "/Applications/Raycast Beta.app" ]; then
       echo "Installing Raycast Beta..."

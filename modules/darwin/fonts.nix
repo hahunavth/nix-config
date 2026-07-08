@@ -1,8 +1,8 @@
 { pkgs, ... }:
 
 {
-  # Nerd Font（starshipプロンプトの記号表示に必要）
-  # ターミナルのフォント設定で "JetBrainsMono Nerd Font" を選択すること
+  # Nerd Font (needed for starship prompt glyphs)
+  # Select "JetBrainsMono Nerd Font" in your terminal's font settings
   fonts.packages = [
     pkgs.nerd-fonts.jetbrains-mono
   ];

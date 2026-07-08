@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  # neovimをデフォルトエディタにする（$EDITOR、vi/vimエイリアス）
+  # Make neovim the default editor ($EDITOR, plus vi/vim aliases)
   programs.neovim = {
     enable = true;
     defaultEditor = true;

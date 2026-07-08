@@ -1,12 +1,14 @@
-{ pkgs, lib, username, ... }:
+{ lib, username, ... }:
 
 {
-  home.packages = with pkgs; [
-    ripgrep
-    fd
-    jq
-    claude-code   # Claude Code CLI
-    socat
+  imports = [
+    ./packages.nix
+    ./git.nix
+    ./ssh.nix
+    ./zsh.nix
+    ./starship.nix
+    ./neovim.nix
+    ./mise.nix
   ];
 
   # ユーザー情報
@@ -17,14 +19,8 @@
   home.homeDirectory = lib.mkForce "/Users/${username}";
 
   # home-managerのバージョン（変更時は注意）
-  home.stateVersion = "23.05";
+  home.stateVersion = "26.05";
 
   # home-managerの有効化
   programs.home-manager.enable = true;
-
-  programs.mise = {
-    enable = true;
-    enableZshIntegration = true;
-  };
 }
-

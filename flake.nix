@@ -1,6 +1,6 @@
 {
   description = "Darwin system flake";
-  
+
   inputs = {
     # Nix darwin
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
@@ -16,14 +16,13 @@
     let
       darwinUser = "kod_admin";
       darwinHost = "KOD-ADMINs-MacBook-Pro";
-      
+
       mkDarwinSystem = { hostname, username }: nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
         modules = [
-          ./configuration.nix
+          ./hosts/${hostname}
           home-manager.darwinModules.home-manager
           {
-            networking.hostName = hostname;
             users.users.${username}.home = "/Users/${username}";
             system.primaryUser = username;
 
@@ -33,27 +32,39 @@
             # Automatically back up any pre-existing files that would
             # otherwise be clobbered (e.g. ~/Applications/Home Manager Apps)
             home-manager.backupFileExtension = "backup";
-            
-            # FIX 1: Use extraSpecialArgs to pass the username down to home.nix safely
+
+            # Use extraSpecialArgs to pass the username down to home/ safely
             home-manager.extraSpecialArgs = { inherit username; };
-            
-            # FIX 2: Point straight to the file. Home Manager will handle the import cleanly.
-            home-manager.users.${username} = import ./home.nix;
+
+            home-manager.users.${username} = import ./home;
           }
         ];
         specialArgs = {
           inherit (nixpkgs) lib;
-          inherit username; # This passes 'username' safely into configuration.nix
+          # This passes 'username' and 'hostname' safely into the host modules
+          inherit username hostname;
         };
       };
 
-      # raycast beta
-      raycastBeta = pkgs: import ./raycast-beta.nix { inherit pkgs; lib = pkgs.lib; };
+      pkgs = nixpkgs.legacyPackages.aarch64-darwin;
 
     in {
       darwinConfigurations.${darwinHost} = mkDarwinSystem {
         hostname = darwinHost;
         username = darwinUser;
       };
+
+      # この設定リポジトリを編集するための開発シェル（nix develop で入る）
+      devShells.aarch64-darwin.default = pkgs.mkShell {
+        packages = with pkgs; [
+          nixfmt-rfc-style   # フォーマッタ
+          statix             # アンチパターン検出
+          deadnix            # 未使用コード検出
+          nil                # Nix LSP（エディタ補完）
+        ];
+      };
+
+      # `nix fmt` で全.nixファイルを整形
+      formatter.aarch64-darwin = pkgs.nixfmt-rfc-style;
     };
 }

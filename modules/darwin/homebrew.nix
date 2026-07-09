@@ -8,7 +8,7 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "zap";   # removes casks/formulae not listed here on rebuild
-      extraFlags = [ "--verbose" ];   # <-- shows real per-cask progress
+      extraFlags = [ "--verbose" ];   # shows real per-cask progress
     };
 
     casks = [
@@ -26,6 +26,7 @@
       "sublime-text"
       "bitwarden"              # Bitwarden password manager
       "tailscale-app"          # Tailscale mesh VPN (GUI + menu-bar app)
+      "input-source-pro"       # Auto-switch keyboard input source per app/site
     ];
   };
 }

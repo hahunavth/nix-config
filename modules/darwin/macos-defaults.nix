@@ -13,11 +13,11 @@
 
   # Dock settings
   system.defaults.dock = {
-    autohide = true;
+    autohide = false;
     show-recents = false;
-    tilesize = 50;
+    tilesize = 36;
     magnification = true;
-    largesize = 64;
+    largesize = 48;
     orientation = "bottom";
     mineffect = "scale";
     launchanim = false;

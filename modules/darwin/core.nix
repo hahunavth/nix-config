@@ -16,10 +16,10 @@
   # Enable flakes etc. by default (no more --extra-experimental-features)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Garbage collection (every Sunday 2:00, delete generations older than 30 days)
+  # Garbage collection (every Sunday 4:00, delete generations older than 30 days)
   nix.gc = {
     automatic = true;
-    interval = { Weekday = 0; Hour = 2; Minute = 0; };
+    interval = { Weekday = 0; Hour = 4; Minute = 0; };
     options = "--delete-older-than 30d";
   };
 

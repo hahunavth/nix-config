@@ -6,6 +6,7 @@
     fd
     jq
     claude-code   # Claude Code CLI
+    nil           # Nix language server (LSP)
     socat
     # CLI to create SSH tunnels / port forwarding
     # (marked broken in nixpkgs 26.05, but verified to build fine here, so clear the flag)

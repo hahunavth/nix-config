@@ -50,7 +50,7 @@ automatically uses the kodnet work email (via `programs.git.includes`). Check wi
   (ssh is configured to use `~/.bitwarden-ssh-agent.sock`).
 - **Keyboard type** (ANSI/ISO/JIS): if the top-left key types `§/±` instead of
   `` `/~ ``, fix it in the macOS Keyboard Setup Assistant — not with a remap.
-- **SSH key files**: hosts in `home/ssh.nix` reference on-disk keys
+- **SSH key files**: hosts in `home-manager/modules/ssh.nix` reference on-disk keys
   (`kod-work.pem`, `hahunavth`, …) that aren't managed by nix — copy them from the
   old machine and `chmod 600`.
 

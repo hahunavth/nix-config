@@ -10,64 +10,98 @@
     # Home manager
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Declarative management of the Homebrew installation itself
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nix-darwin,
+      home-manager,
+      nix-homebrew,
+      ...
+    }:
     let
-      # Machine registry: hostname -> { username, profile }.
-      # `profile` selects the profiles/<profile>.nix package overrides.
-      hosts = {
-        "KOD-ADMINs-MacBook-Pro" = { username = "kod_admin"; profile = "work"; };
-        # future: "Personal-MBP" = { username = "..."; profile = "personal"; };
-      };
+      system = "aarch64-darwin";
 
-      mkDarwinSystem = { hostname, username, profile }: nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
-        modules = [
-          ./hosts/${hostname}
-          home-manager.darwinModules.home-manager
-          {
-            users.users.${username}.home = "/Users/${username}";
-            system.primaryUser = username;
+      # Machine registry: hosts.nix entries, validated and enriched by lib/hosts.nix
+      hostConfig = import ./lib/hosts.nix { hostsPath = ./hosts.nix; };
+      inherit (hostConfig) validatedConfigsChecked;
 
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
+      mkDarwinConfiguration =
+        userConfig:
+        nix-darwin.lib.darwinSystem {
+          specialArgs = { inherit userConfig self; };
+          modules = [
+            { nixpkgs.hostPlatform = system; }
 
-            # Automatically back up any pre-existing files that would
-            # otherwise be clobbered (e.g. ~/Applications/Home Manager Apps)
-            home-manager.backupFileExtension = "backup";
+            # System configuration (darwin/)
+            ./darwin/configuration.nix
+            ./darwin/nix-settings.nix
+            ./darwin/misc-system.nix
+            ./darwin/security.nix
+            ./darwin/linux-builder.nix
+            ./darwin/fonts.nix
+            ./darwin/macos-defaults.nix
+            ./darwin/raycast-beta.nix
 
-            # Pass username + profile down to home/ modules
-            home-manager.extraSpecialArgs = { inherit username profile; };
+            # User environment (home-manager/)
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                # Automatically back up any pre-existing files that would
+                # otherwise be clobbered (e.g. ~/Applications/Home Manager Apps)
+                backupFileExtension = "backup";
+                extraSpecialArgs = { inherit userConfig; };
+                users.${userConfig.username} =
+                  { lib, ... }:
+                  {
+                    imports = [ ./home-manager/default.nix ];
+                    home = {
+                      username = lib.mkForce userConfig.username;
+                      # lib.mkForce works around nix-darwin issue #682
+                      homeDirectory = lib.mkForce "/Users/${userConfig.username}";
+                      # home-manager version (be careful when changing)
+                      stateVersion = "26.05";
+                    };
+                    programs.home-manager.enable = true;
+                  };
+              };
+            }
 
-            home-manager.users.${username} = import ./home;
-          }
-        ];
-        specialArgs = {
-          inherit (nixpkgs) lib;
-          # Pass username / hostname / profile safely into the host modules
-          inherit username hostname profile;
+            # Homebrew (installation + composed package lists)
+            nix-homebrew.darwinModules.nix-homebrew
+            ./darwin/homebrew.nix
+          ];
         };
-      };
 
-      pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-
-    in {
-      darwinConfigurations = nixpkgs.lib.mapAttrs (
-        hostname: h: mkDarwinSystem { inherit hostname; inherit (h) username profile; }
-      ) hosts;
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      # One entry per hosts.nix host; darwin-rebuild selects by hostname.
+      darwinConfigurations = builtins.listToAttrs (
+        builtins.map (userConfig: {
+          name = userConfig.hostname;
+          value = mkDarwinConfiguration userConfig;
+        }) validatedConfigsChecked
+      );
 
       # Dev shell for editing this config repo (enter with `nix develop`)
-      devShells.aarch64-darwin.default = pkgs.mkShell {
+      devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          nixfmt-rfc-style   # formatter
-          statix             # anti-pattern linter
-          deadnix            # dead-code finder
-          nil                # Nix LSP (editor completion)
+          nixfmt-rfc-style # formatter
+          statix # anti-pattern linter
+          deadnix # dead-code finder
+          nil # Nix LSP (editor completion)
         ];
       };
 
       # `nix fmt` formats every .nix file
-      formatter.aarch64-darwin = pkgs.nixfmt-rfc-style;
+      formatter.${system} = pkgs.nixfmt-rfc-style;
     };
 }

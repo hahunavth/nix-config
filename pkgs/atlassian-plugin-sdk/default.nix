@@ -5,7 +5,11 @@
 # binaries collide on link), so we fetch and unpack the official tarball
 # ourselves. atlas-* scripts land in $out/bin. Instantiate per version with
 # { version, url, hash }. Needs a JDK on PATH at runtime (per-project via mise).
-{ version, url, hash }:
+{
+  version,
+  url,
+  hash,
+}:
 
 stdenv.mkDerivation {
   pname = "atlassian-plugin-sdk";

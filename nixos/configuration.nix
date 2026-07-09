@@ -38,6 +38,15 @@
     curl
     gnumake
     gcc
+    python3 # mise's node plugin needs it if it ever falls back to source builds
+  ];
+
+  # Run foreign prebuilt binaries (mise-installed JDKs, node, pnpm, ...) on
+  # NixOS: provides the /lib ld-linux interpreter shim they link against.
+  # Without this every mise tool fails with "No such file or directory".
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    zlib # JDKs and node dlopen libz at runtime
   ];
 
   # NOTE: sshd stays disabled (see orbstack/orbstack.nix) — OrbStack provides SSH

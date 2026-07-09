@@ -4,175 +4,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a cross-platform NixOS configuration repository supporting both macOS (via nix-darwin) and NixOS systems. It uses Nix Flakes exclusively and follows a modular architecture.
+macOS system configuration managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin) and
+[home-manager](https://github.com/nix-community/home-manager), using Nix Flakes. macOS-only
+(`aarch64-darwin`, Apple Silicon). Single host, single user today, but structured to grow.
 
-## System Environment
+- Host: `KOD-ADMINs-MacBook-Pro`
+- User: `kod_admin`
+- Location: `/etc/nix-darwin` (a shared system path; the directory is owned by the user, so editing
+  needs no sudo). Keep it here rather than a home dir — the machine has multiple accounts (ABC,
+  Vietnamese, Japanese input methods) and is intended for team/multi-machine reuse.
 
-- **Display Server**: Wayland (not X11)
-- **Desktop Environment**: KDE Plasma 6
-- **Window Manager**: KWin (Wayland)
+## Layout
 
-Important: When working with GUI applications, ensure Wayland compatibility. For example:
-- Use `rofi-wayland` instead of `rofi`
-- Check for Wayland-specific versions of applications
-- Some X11-only applications may need XWayland compatibility layer
-
-## Key Commands
-
-### Building and Switching Configurations
-
-**NixOS (x86_64-linux):**
-```bash
-# Build and switch to new configuration
-nix run .#build-switch
-
-# Build, switch, and restart Emacs daemon (use after Emacs config changes)
-nix run .#build-switch-emacs
-
-# Install fresh system (without secrets)
-nix run .#install
-
-# Install fresh system (with secrets)
-nix run .#install-with-secrets
-
-# Clean up old generations and boot files (frees disk space)
-nix run .#clean
+```
+flake.nix                       # inputs + mkDarwinSystem + darwinConfigurations, devShell, formatter
+hosts/<hostname>/default.nix    # per-machine: hostName, hostPlatform; imports modules/darwin
+modules/darwin/                 # system-level (nix-darwin) modules, composed via default.nix
+  core.nix                      # nix settings (flakes, GC, optimise), system packages, zsh, stateVersion
+  macos-defaults.nix            # Finder / Dock defaults
+  homebrew.nix                  # Homebrew casks (GUI apps)
+  security.nix                  # Touch ID for sudo
+  fonts.nix                     # Nerd Fonts (JetBrainsMono, FiraCode)
+  raycast-beta.nix              # Raycast Beta install activation script (uses pkgs/raycast-beta)
+home/                           # user-level (home-manager) modules, composed via default.nix
+  default.nix                   # user identity, stateVersion, imports
+  packages.nix, git.nix, ssh.nix, zsh.nix, starship.nix, neovim.nix, mise.nix, default-browser.nix
+pkgs/raycast-beta/              # custom package: Raycast Beta DMG (fetchurl)
 ```
 
-**Important:** 
-- After making changes to Nix configuration files, run `nix run .#build-switch`
-- After making changes to Emacs configuration (`modules/shared/config/emacs/config.org`), run `nix run .#build-switch-emacs`
+## Commands
 
-**macOS (x86_64-darwin):**
+Build only (no changes, no sudo) — always do this to verify before switching:
 ```bash
-sudo darwin-rebuild switch --flake .
+nix build .#darwinConfigurations.KOD-ADMINs-MacBook-Pro.system
 ```
 
-<!-- ```bash
-# Test build without switching
-nix run .#build
-
-# Build and switch to new configuration
-nix run .#build-switch
-
-# Rollback to previous generation
-nix run .#rollback
-
-# Clean up old generations (frees disk space)
-nix run .#clean
-``` -->
-
-### Development Commands
-
+Apply to the system:
 ```bash
-# Update flake inputs
-nix flake update
+sudo darwin-rebuild switch --flake /etc/nix-darwin
+# after the first switch, the `rebuild` zsh alias runs exactly this
+```
 
-# Check flake
+Dev shell / formatting (for editing this repo):
+```bash
+nix develop      # nixfmt, statix, deadnix, nil
+nix fmt          # format all .nix files
 nix flake check
-
-# Format Nix files
-nixpkgs-fmt .
-
-# Lint Nix code (runs in CI)
-statix check
 ```
 
-## Architecture
+## Conventions & gotchas
 
-### Directory Structure
-- `hosts/` - Host-specific configurations (darwin/default.nix for macOS, nixos/default.nix for NixOS)
-- `modules/` - Modular configuration components:
-  - `shared/` - Cross-platform configurations (packages, home-manager, fonts)
-  - `nixos/` - Linux-specific packages and configurations
-  - `darwin/` - macOS-specific packages and Homebrew integration
-- `overlays/` - Auto-loading Nix overlays (any .nix file here runs automatically)
-- `apps/` - Platform-specific build and deployment scripts
-- `templates/` - Starter templates for new users
+- **Flakes only see git-tracked files** — `git add -A` new files before building or they're invisible.
+- **`flake.lock` is tracked in git** — builds are pure; do NOT pass `--impure`. Only run
+  `darwin-rebuild` as your user (not via a root shell) so the lock file doesn't become root-owned.
+- **GUI apps go through Homebrew casks** in `modules/darwin/homebrew.nix` (not nixpkgs); CLI tools go
+  in `home/packages.nix`. `homebrew.onActivation.cleanup = "zap"` removes anything not listed.
+- **stateVersion is intentionally pinned** (`system.stateVersion = 4`, `home.stateVersion = "26.05"`).
+  Do not "upgrade" these — they record install-time defaults, not the current release.
+- **Verify changes by building** and, for home-manager changes, inspecting the generated files under
+  the built `home-manager-generation` store path (e.g. `.zshrc`, `.config/git/config`).
+- Comments in this repo are in English.
 
-### Key Patterns
+## Adding things
 
-1. **Module Inheritance**: Platform-specific modules extend shared configurations
-   ```nix
-   # Example from modules/nixos/packages.nix
-   packages = with pkgs; [
-     # Shared packages are inherited
-   ] ++ sharedPackages;
-   ```
-
-2. **Auto-loading Overlays**: Drop any .nix file in `overlays/` and it loads automatically via:
-   ```nix
-   # modules/shared/default.nix
-   nixpkgs.overlays = import ../../overlays {inherit lib pkgs inputs outputs;};
-   ```
-
-3. **Secrets Management**: Uses `agenix` for encrypted secrets
-   - Secrets defined in `hosts/{platform}/secrets/secrets.nix`
-   - Age keys in `hosts/{platform}/secrets/keys/`
-
-4. **Home Manager Integration**: User-level configurations in `modules/shared/home-manager.nix`
-
-### Important Configuration Files
-
-- `flake.nix` - Main entry point defining inputs and system configurations
-- `hosts/nixos/default.nix` - NixOS system configuration (hostname: "felix")
-- `hosts/darwin/default.nix` - macOS system configuration
-- `modules/shared/packages.nix` - Cross-platform package definitions
-- `modules/shared/home-manager.nix` - Shell, editor, and tool configurations
-
-## Working with This Repository
-
-### CRITICAL: Git Tracking Requirement
-**IMPORTANT:** When creating ANY new file in this repository (overlays, modules, configurations, etc.), you MUST add it to git with `git add` before running `nix run .#build-switch`. Nix flakes only see files tracked by git, so untracked files will cause build failures. This applies to ALL files, not just overlays.
-
-### Adding Packages
-1. **Cross-platform packages**: Add to `modules/shared/packages.nix`
-2. **NixOS-only packages**: Add to `modules/nixos/packages.nix`
-3. **macOS-only packages**: Add to `modules/darwin/packages.nix`
-4. **Homebrew casks (macOS)**: Add to `modules/darwin/casks.nix`
-
-### Creating Overlays
-Create a new .nix file in `overlays/` directory. It will be automatically loaded.
-
-### Modifying Shell Configuration
-Edit `modules/shared/home-manager.nix` for:
-- Zsh configuration and aliases
-- Git settings
-- Terminal emulator (Alacritty) configuration
-- Tmux settings
-- SSH configuration
-
-### Editing Emacs Configuration
-The Emacs configuration is a literate Org-mode file at `modules/shared/config/emacs/config.org`. This file:
-- Contains all Emacs configuration in Org-mode code blocks
-- Is automatically tangled to `config.el` when building
-- Includes comprehensive documentation alongside the configuration
-- Supports adding new packages and customizations in the appropriate sections
-
-**Important:** When making changes to Emacs configuration:
-1. Edit `modules/shared/config/emacs/config.org`
-2. If adding a new package, also add it to `modules/shared/emacs.nix`
-3. Run `nix run .#build-switch` to rebuild the configuration
-4. Restart the Emacs daemon with: `emacsclient -e "(kill-emacs)"`
-5. The daemon will automatically restart when you next use Emacs
-6. **Update cheatsheets:** Check if the relevant cheatsheets in `/home/dustin/cheatsheets/` need to be updated with new keybindings or features (especially `emacs.md`)
-
-### System-specific Changes
-- **NixOS boot/kernel**: `hosts/nixos/default.nix`
-- **macOS system settings**: `hosts/darwin/default.nix`
-- **Disk partitioning (NixOS)**: `hosts/nixos/disk-config.nix`
-
-## Testing Changes
-
-Always test configuration changes before applying:
-1. Run `nix flake check` to validate the flake
-2. Use platform-specific build command to test
-3. Review changes before switching
-
-## CI/CD
-
-GitHub Actions automatically:
-- Tests starter template builds
-- Runs statix linting on Nix code
-- Updates flake.lock weekly
-- Manages dependencies via Dependabot
+- **New host**: create `hosts/<hostname>/default.nix`, add a `darwinConfigurations.<hostname>` entry
+  in `flake.nix` via `mkDarwinSystem`. `darwin-rebuild` auto-selects the entry matching the machine's
+  hostname. Note `mkDarwinSystem` currently hardcodes `system = "aarch64-darwin"`.
+- **New system module**: add under `modules/darwin/` and import it in `modules/darwin/default.nix`.
+- **New home module**: add under `home/` and import it in `home/default.nix`.

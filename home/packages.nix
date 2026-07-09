@@ -5,7 +5,6 @@
     ripgrep
     fd
     jq
-    claude-code   # Claude Code CLI
     nil           # Nix language server (LSP)
     nixfmt        # Nix formatter
     socat
@@ -16,5 +15,6 @@
     # (skip the integration tests: they need real-hardware sysctl etc. and fail in the build sandbox)
     (mactop.overrideAttrs (_: { doCheck = false; }))
     macpm         # Apple Silicon power/GPU monitor (successor to asitop, needs sudo)
+    ranger
   ];
 }

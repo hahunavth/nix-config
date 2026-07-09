@@ -17,6 +17,7 @@
 
     casks = [
       "claude"                 # Claude desktop app
+      "claude-code@latest"     # Claude Code CLI
       "slack"
       "arc"
       "google-chrome"

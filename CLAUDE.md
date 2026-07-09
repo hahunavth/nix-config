@@ -65,6 +65,29 @@ nix flake check
   the built `home-manager-generation` store path (e.g. `.zshrc`, `.config/git/config`).
 - Comments in this repo are in English.
 
+## macOS specifics
+
+- **Homebrew must already be installed** — nix-darwin *manages* casks (writes a Brewfile, runs
+  `brew bundle`) but does not install Homebrew itself. On a fresh Mac, install brew first.
+- **First `darwin-rebuild switch` triggers one-time GUI permission prompts** that cannot be granted
+  declaratively — approve them manually:
+  - Arc default browser: a "change default browser to Arc?" confirmation dialog (from
+    `home/default-browser.nix`, via `defaultbrowser`).
+  - Input Source Pro: needs **Accessibility** permission (System Settings → Privacy & Security).
+  - Possibly an **App Management** prompt (home-manager 26.05 copies GUI apps during activation).
+- **Touch ID for sudo** (`modules/darwin/security.nix`) takes effect after the first switch; that
+  first switch still needs a typed password.
+- **Some settings need a logout/restart** to apply — most `system.defaults`, Dock/Finder changes,
+  and any input-source changes. A rebuild alone may not visibly update them.
+- **Keyboard type (ANSI/ISO/JIS) is NOT a nix setting** — it's per-hardware, set via macOS Keyboard
+  Setup Assistant ("Change Keyboard Type…"). A misdetected type causes the §/± vs `/~ key confusion;
+  fix it there, not with a `hidutil`/`remapTilde` remap (those treat the symptom and reset on reboot).
+- **Input methods**: this machine uses ABC (US) plus Vietnamese (Telex) and Japanese (Kotoeri).
+  Do NOT declare `AppleEnabledInputSources` via `CustomUserPreferences` — it overwrites the whole
+  list and would wipe these IMEs.
+- **For macOS settings without a typed nix-darwin option**, use
+  `system.defaults.CustomUserPreferences."<domain>" = { ... }` (maps to `defaults write`).
+
 ## Adding things
 
 - **New host**: create `hosts/<hostname>/default.nix`, add a `darwinConfigurations.<hostname>` entry

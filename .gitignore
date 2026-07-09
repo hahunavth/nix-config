@@ -1,3 +1,4 @@
 *.nix.swp
 .mise.local.toml
 result
+.direnv

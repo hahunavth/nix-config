@@ -12,6 +12,7 @@
     ./mise.nix
     ./atlassian-sdk.nix
     ./atlassian-mise.nix
+    ./direnv.nix
   ];
 
   # User info

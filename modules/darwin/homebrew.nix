@@ -1,44 +1,30 @@
-{ ... }:
+{ profile, lib, ... }:
 
+let
+  inherit (import ../../lib { inherit lib; }) composeList;
+
+  # base package sets + the active profile's add/remove overrides
+  common = (import ../../profiles/common.nix).homebrew;
+  prof = (import (../../profiles + "/${profile}.nix")).homebrew;
+in
 {
-  # Homebrew integration (for GUI apps not well-suited to nixpkgs)
+  # Homebrew integration (for GUI apps not well-suited to nixpkgs).
+  # Package lists are composed from profiles/ (common + <profile>); edit those,
+  # not this file. Note: the Atlassian Plugin SDK is NOT installed via Homebrew —
+  # its tap has broken formula class names and the atlas-* binaries collide on
+  # link; both SDK versions are pinned via pkgs/atlassian-plugin-sdk.
   homebrew = {
     enable = true;
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap";   # removes casks/formulae not listed here on rebuild
-      extraFlags = [ "--verbose" ];   # shows real per-cask progress
+      cleanup = "zap"; # removes casks/formulae not listed here on rebuild
+      extraFlags = [ "--verbose" ]; # shows real per-cask progress
     };
 
-    # Note: the Atlassian Plugin SDK is NOT installed via Homebrew — its tap has
-    # broken formula class names and the atlas-* binaries collide on link. Both
-    # SDK versions are pinned via pkgs/atlassian-plugin-sdk + home/atlassian-sdk.nix.
-
-    casks = [
-      "claude"                 # Claude desktop app
-      "claude-code@latest"     # Claude Code CLI
-      "slack"
-      "arc"
-      "google-chrome"
-      "microsoft-edge"
-      "visual-studio-code"
-      "microsoft-office"       # Word, Excel, PowerPoint, OneNote
-      "microsoft-teams"
-      "remote-desktop-manager"
-      "orbstack"               # Docker/Linux VMs (Docker Desktop alternative)
-      "warp"                   # Warp terminal
-      "sublime-text"
-      "bitwarden"              # Bitwarden password manager
-      "tailscale-app"          # Tailscale mesh VPN (GUI + menu-bar app)
-      "input-source-pro"       # Auto-switch keyboard input source per app/site
-      "obsidian"               # Obsidian notes / knowledge base
-      "miniconda"              # Python / conda data-science stack
-      "zoom"
-      "syncthing-app"
-      "iterm2"                 # Terminal emulator (alternative to Warp)
-      "rectangle"              # Window snapping / management (half, quarter, full)
-      "shottr"                 # Screenshot tool w/ annotation (arrows, blur, OCR)
-    ];
+    taps = composeList (common.taps or [ ]) (prof.extraTaps or [ ]) (prof.removeTaps or [ ]);
+    brews = composeList (common.brews or [ ]) (prof.extraBrews or [ ]) (prof.removeBrews or [ ]);
+    casks = composeList (common.casks or [ ]) (prof.extraCasks or [ ]) (prof.removeCasks or [ ]);
+    masApps = (common.masApps or { }) // (prof.masApps or { });
   };
 }

@@ -14,10 +14,14 @@
 
   outputs = { self, nixpkgs, nix-darwin, home-manager }:
     let
-      darwinUser = "kod_admin";
-      darwinHost = "KOD-ADMINs-MacBook-Pro";
+      # Machine registry: hostname -> { username, profile }.
+      # `profile` selects the profiles/<profile>.nix package overrides.
+      hosts = {
+        "KOD-ADMINs-MacBook-Pro" = { username = "kod_admin"; profile = "work"; };
+        # future: "Personal-MBP" = { username = "..."; profile = "personal"; };
+      };
 
-      mkDarwinSystem = { hostname, username }: nix-darwin.lib.darwinSystem {
+      mkDarwinSystem = { hostname, username, profile }: nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
         modules = [
           ./hosts/${hostname}
@@ -33,26 +37,25 @@
             # otherwise be clobbered (e.g. ~/Applications/Home Manager Apps)
             home-manager.backupFileExtension = "backup";
 
-            # Use extraSpecialArgs to pass the username down to home/ safely
-            home-manager.extraSpecialArgs = { inherit username; };
+            # Pass username + profile down to home/ modules
+            home-manager.extraSpecialArgs = { inherit username profile; };
 
             home-manager.users.${username} = import ./home;
           }
         ];
         specialArgs = {
           inherit (nixpkgs) lib;
-          # This passes 'username' and 'hostname' safely into the host modules
-          inherit username hostname;
+          # Pass username / hostname / profile safely into the host modules
+          inherit username hostname profile;
         };
       };
 
       pkgs = nixpkgs.legacyPackages.aarch64-darwin;
 
     in {
-      darwinConfigurations.${darwinHost} = mkDarwinSystem {
-        hostname = darwinHost;
-        username = darwinUser;
-      };
+      darwinConfigurations = nixpkgs.lib.mapAttrs (
+        hostname: h: mkDarwinSystem { inherit hostname; inherit (h) username profile; }
+      ) hosts;
 
       # Dev shell for editing this config repo (enter with `nix develop`)
       devShells.aarch64-darwin.default = pkgs.mkShell {

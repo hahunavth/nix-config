@@ -5,4 +5,5 @@
   "syncthing-app"
   "rectangle" # Window snapping / management
   "shottr" # Screenshot tool w/ annotation
+  "hammerspoon" # Lua automation; plays copy/paste sounds (see modules/hammerspoon.nix)
 ]

@@ -19,6 +19,7 @@
     ./modules/direnv.nix
     ./modules/nh.nix
     ./modules/default-browser.nix
+    ./modules/hammerspoon.nix
 
     # Dev toolchains
     ./modules/mise.nix

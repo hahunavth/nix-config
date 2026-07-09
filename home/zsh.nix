@@ -4,7 +4,8 @@ let
   # socat port forwards to the Windows machine (Tailscale IP). Bind to localhost.
   winHost = "100.110.190.53";
   # build a backgrounded socat forward: local port -> winHost:remote port
-  fwd = local: remote:
+  fwd =
+    local: remote:
     "nohup socat TCP-LISTEN:${local},fork,reuseaddr,bind=127.0.0.1 TCP:${winHost}:${remote} >/dev/null 2>&1 &";
   # kill any existing socat listener on a given local port
   killPort = port: "pkill -f 'TCP-LISTEN:${port},'";
@@ -39,7 +40,7 @@ in
         (fwd "9220" "9220")
       ];
       win-5005 = "${kill5005}; ${fwd "5005" "5005"}";
-      win-5006 = "${kill5005}; ${fwd "5005" "5006"}";
+      win-5006 = "${kill5006}; ${fwd "5005" "5006"}";
       win-6090 = "${kill6090}; ${fwd "6090" "6090"}";
       win-7129 = "${kill7129}; ${fwd "7129" "7129"}";
       win-7130 = "${kill7130}; ${fwd "7130" "7130"}";

@@ -11,6 +11,10 @@
       extraFlags = [ "--verbose" ];   # shows real per-cask progress
     };
 
+    # Note: the Atlassian Plugin SDK is NOT installed via Homebrew — its tap has
+    # broken formula class names and the atlas-* binaries collide on link. Both
+    # SDK versions are pinned via pkgs/atlassian-plugin-sdk + home/atlassian-sdk.nix.
+
     casks = [
       "claude"                 # Claude desktop app
       "slack"
@@ -27,6 +31,10 @@
       "bitwarden"              # Bitwarden password manager
       "tailscale-app"          # Tailscale mesh VPN (GUI + menu-bar app)
       "input-source-pro"       # Auto-switch keyboard input source per app/site
+      "obsidian"               # Obsidian notes / knowledge base
+      "miniconda"              # Python / conda data-science stack
+      "zoom"
+      "syncthing-app"
     ];
   };
 }

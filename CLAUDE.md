@@ -88,6 +88,59 @@ nix flake check
 - **For macOS settings without a typed nix-darwin option**, use
   `system.defaults.CustomUserPreferences."<domain>" = { ... }` (maps to `defaults write`).
 
+## Dev toolchains
+
+Language runtimes are managed by **mise** (`home/mise.nix`), not global nix packages.
+Global defaults live in `programs.mise.globalConfig`; per-project versions go in each repo's
+`.mise.toml`. Versions resolve at `mise install` time (network), not at nix build time.
+
+- **Node + pnpm**: Node LTS and pnpm 11 are the global defaults.
+- **Java**: JDK 25 (default), 17, and 8 are all installed; pick per project.
+- **Python / data science**: the `miniconda` Homebrew cask (conda), separate from mise. With a
+  home-manager-managed `.zshrc`, add conda's init to `programs.zsh` rather than running `conda init`.
+
+**Atlassian Plugin SDK** — both versions are pinned via nix (`pkgs/atlassian-plugin-sdk`,
+instantiated per version in `home/atlassian-sdk.nix`) and exposed at stable paths. Homebrew is NOT
+used — its tap has broken formula class names and the `atlas-*` binaries collide on link.
+- **8.2.7** at `~/.local/share/atlassian-plugin-sdk/8.2.7/bin` (pair with Java 8).
+- **9.1.1** at `~/.local/share/atlassian-plugin-sdk/9.1.1/bin` (pair with Java 17).
+
+Select one per project in `.mise.toml`, paired with its JDK:
+
+```toml
+# older Server/DC plugin project (SDK 8.2.7 + Java 8)
+[tools]
+java = "zulu-8"   # Temurin has no arm64 JDK 8 on Apple Silicon
+[env]
+_.path = ["~/.local/share/atlassian-plugin-sdk/8.2.7/bin"]
+```
+
+```toml
+# newer plugin project (SDK 9.1.1 + Java 17)
+[tools]
+java = "temurin-17"
+[env]
+_.path = ["~/.local/share/atlassian-plugin-sdk/9.1.1/bin"]
+```
+
+The SDKs live in the read-only nix store, so if `atlas-mvn` fails trying to write into the SDK dir,
+point Maven's local repo at a writable path (e.g.
+`export MAVEN_OPTS=-Dmaven.repo.local=$HOME/.m2/repository`). Run `mise install` after editing versions.
+
+### Branch-based auto-switching (Atlassian plugin repos)
+
+Two commands (from `home/atlassian-mise.nix`) switch the Java + SDK stack by git branch, per project:
+
+- `atlas-mise-enable` — run once inside an Atlassian plugin repo. Installs
+  `post-checkout`/`post-merge`/`post-rewrite` hooks, gitignores `.mise.local.toml`, and generates it
+  for the current branch.
+- `atlas-mise-gen` — regenerates `.mise.local.toml` from the current branch (called by the hooks).
+
+Branch rule: name contains **`wiki_9`** → Java 17 + SDK 9.1.1; otherwise → Java 8 + SDK 8.2.7. Edit
+`NEW_STACK_PATTERN` in `home/atlassian-mise/atlas-mise-gen.sh` to change it. The generated
+`.mise.local.toml` is a gitignored local override; the hook calls `atlas-mise-gen` off PATH, so run
+`git` from a shell that has the home-manager profile.
+
 ## Adding things
 
 - **New host**: create `hosts/<hostname>/default.nix`, add a `darwinConfigurations.<hostname>` entry

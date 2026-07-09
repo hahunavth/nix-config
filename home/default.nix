@@ -10,6 +10,8 @@
     ./starship.nix
     ./neovim.nix
     ./mise.nix
+    ./atlassian-sdk.nix
+    ./atlassian-mise.nix
   ];
 
   # User info

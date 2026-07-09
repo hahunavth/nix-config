@@ -13,6 +13,8 @@
     ./atlassian-sdk.nix
     ./atlassian-mise.nix
     ./direnv.nix
+    ./nh.nix
+    ./tmux.nix
   ];
 
   # User info

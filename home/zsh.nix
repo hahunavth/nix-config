@@ -27,6 +27,8 @@ in
     shellAliases = {
       # Rebuild the system from the flake (works from any directory)
       rebuild = "sudo darwin-rebuild switch --flake /etc/nix-darwin";
+      # Same, via nh: unprivileged build + a diff of what changed (uses NH_FLAKE)
+      rebuild2 = "nh darwin switch";
 
       # Windows port forwards via socat (run as needed):
       #   win-on     start the usual set (local 5005->5005, 7130, 6090, 9220)

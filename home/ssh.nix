@@ -18,6 +18,10 @@
         ServerAliveInterval = 60;
         # Store passphrases in the macOS Keychain
         UseKeychain = "yes";
+        # Use Bitwarden Desktop as the SSH agent (keys in the vault, unlocked by
+        # Touch ID). Enable it in Bitwarden → Settings → "Enable SSH agent".
+        # Hosts below that set IdentitiesOnly=yes keep using their on-disk keys.
+        IdentityAgent = "~/.bitwarden-ssh-agent.sock";
       };
 
       # Per-host config (migrated from the old machine's ~/.ssh/config backup).

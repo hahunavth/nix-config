@@ -36,6 +36,7 @@
       "zoom"
       "syncthing-app"
       "iterm2"                 # Terminal emulator (alternative to Warp)
+      "rectangle"              # Window snapping / management (half, quarter, full)
     ];
   };
 }

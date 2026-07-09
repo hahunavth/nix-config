@@ -3,6 +3,7 @@
 {
   imports = [
     ./packages.nix
+    ./default-browser.nix
     ./git.nix
     ./ssh.nix
     ./zsh.nix

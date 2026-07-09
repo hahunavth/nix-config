@@ -24,6 +24,8 @@
       "orbstack"               # Docker/Linux VMs (Docker Desktop alternative)
       "warp"                   # Warp terminal
       "sublime-text"
+      "bitwarden"              # Bitwarden password manager
+      "tailscale-app"          # Tailscale mesh VPN (GUI + menu-bar app)
     ];
   };
 }

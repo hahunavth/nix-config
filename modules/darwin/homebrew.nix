@@ -35,6 +35,7 @@
       "miniconda"              # Python / conda data-science stack
       "zoom"
       "syncthing-app"
+      "iterm2"                 # Terminal emulator (alternative to Warp)
     ];
   };
 }

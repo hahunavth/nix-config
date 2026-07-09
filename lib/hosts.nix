@@ -27,6 +27,9 @@ let
       workEmail = mergedConfig.workEmail or "";
       profile = mergedConfig.profile or "personal";
       signingKey = mergedConfig.signingKey or "";
+      # Nix platform double. Defaults to Apple Silicon so existing macOS hosts
+      # need no change; Linux hosts (e.g. the OrbStack dev VM) set it explicitly.
+      system = mergedConfig.system or "aarch64-darwin";
     };
 
   validateConfig =
@@ -43,6 +46,13 @@ let
         "work"
       ];
       profile = config.profile or "personal";
+      validSystems = [
+        "aarch64-darwin"
+        "x86_64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
+      system = config.system or "aarch64-darwin";
     in
     if builtins.length missingAttrs > 0 then
       throw "Missing required attributes in ${sourceName}: ${builtins.toString missingAttrs}"
@@ -52,6 +62,8 @@ let
       throw "Invalid hostname format in ${sourceName}: ${hostname}. Use only letters, numbers, and hyphens."
     else if !(builtins.elem profile validProfiles) then
       throw "Invalid profile '${profile}' in ${sourceName}. Allowed values: ${builtins.toString validProfiles}"
+    else if !(builtins.elem system validSystems) then
+      throw "Invalid system '${system}' in ${sourceName}. Allowed values: ${builtins.toString validSystems}"
     else
       config;
 

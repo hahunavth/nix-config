@@ -5,14 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository Overview
 
 macOS system configuration managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin) and
-[home-manager](https://github.com/nix-community/home-manager), using Nix Flakes. macOS-only
-(`aarch64-darwin`, Apple Silicon). Single host, single user today, but structured to grow.
+[home-manager](https://github.com/nix-community/home-manager), using Nix Flakes. Primarily macOS
+(`aarch64-darwin`, Apple Silicon), but the same flake also builds a headless **NixOS** dev host
+(`aarch64-linux`) — see "Multi-platform" below. Structured to grow to more hosts/users.
 
-- Host: `KOD-ADMINs-MacBook-Pro`
-- User: `kod_admin`
+- Host (macOS): `KOD-ADMINs-MacBook-Pro`; user `kod_admin`
+- Host (NixOS): `nixos` — a headless OrbStack VM (`aarch64-linux`) for dev, SSH'd into from the Mac
 - Location: `/etc/nix-darwin` (a shared system path; the directory is owned by the user, so editing
   needs no sudo). Keep it here rather than a home dir — the machine has multiple accounts (ABC,
-  Vietnamese, Japanese input methods) and is intended for team/multi-machine reuse.
+  Vietnamese, Japanese input methods) and is intended for team/multi-machine reuse. Inside the
+  OrbStack VM the same repo is reachable at `/private/etc/nix-darwin` (Mac virtiofs mount).
 
 ## Layout
 
@@ -20,8 +22,8 @@ Structure follows [mlgruby/dotfile-nix](https://github.com/mlgruby/dotfile-nix):
 registry (`hosts.nix` → `userConfig`) plus profile-composed Homebrew lists.
 
 ```
-flake.nix                       # inputs + darwinConfigurations (one per hosts.nix host), devShell, formatter
-hosts.nix                       # machine & identity registry; validated by lib/hosts.nix
+flake.nix                       # inputs + darwin/nixosConfigurations (partitioned by userConfig.system), devShell, formatter
+hosts.nix                       # machine & identity registry (incl. per-host `system`); validated by lib/hosts.nix
 hosts.example.nix               # template for hosts.nix
 lib/hosts.nix                   # validation/enrichment -> userConfig (threaded via specialArgs)
 darwin/                         # system-level (nix-darwin) modules, each imported by flake.nix
@@ -36,13 +38,20 @@ darwin/                         # system-level (nix-darwin) modules, each import
   homebrew-packages/            # categorized lists: taps.nix, brews/, casks/{apps,development,system}.nix
   profiles/                     # common.nix (shared) + work/personal.nix overrides (mkProfile in lib.nix)
   lib/homebrew.nix              # composeList/unique/removeItems helpers
-home-manager/                   # user-level config
-  default.nix                   # module imports (identity is set by the flake from userConfig)
+home-manager/                   # user-level config (shared across platforms)
+  default.nix                   # SHARED module imports (cross-platform); identity set by the flake
+  darwin.nix                    # entry point: default.nix + macOS-only (default-browser, hammerspoon)
+  linux.nix                     # entry point: default.nix (+ future Linux-only modules)
   modules/                      # per-program: git, ssh, zsh, starship, neovim, tmux, direnv, nh,
-                                #   mise, atlassian-sdk, atlassian-mise, default-browser
+                                #   mise, atlassian-sdk, atlassian-mise, default-browser, hammerspoon
+                                #   (platform-specific bits guarded by pkgs.stdenv.isDarwin)
   modules/packages/             # categorized CLI packages: development.nix, system.nix
   aliases/                      # shell aliases by domain: core.nix, win-tunnel.nix (merged in zsh.nix)
   scripts/                      # shell scripts (atlassian-mise/)
+nixos/                          # NixOS (Linux) system modules
+  configuration.nix             # our layer: flakes/GC, zsh default shell, lean system packages
+  orbstack/                     # OrbStack-GENERATED guest config, copied verbatim from the VM's
+                                #   /etc/nixos (configuration.nix, orbstack.nix, incus.nix) — re-sync if regenerated
 pkgs/                           # custom packages: raycast-beta, atlassian-plugin-sdk (fetchurl-pinned)
 scripts/bootstrap.sh            # fresh-machine bootstrap; docs/onboarding.md = human runbook
 ```
@@ -66,6 +75,34 @@ nix develop      # nixfmt, statix, deadnix, nil
 nix fmt          # format all .nix files
 nix flake check
 ```
+
+### Multi-platform (macOS + NixOS)
+
+The flake partitions `hosts.nix` entries by their `system` field: `*-darwin` → `darwinConfigurations`,
+`*-linux` → `nixosConfigurations`. `system` defaults to `aarch64-darwin`, so macOS hosts need no change.
+
+The **NixOS dev host** is a headless OrbStack VM named `nixos` (`aarch64-linux`). It shares all
+portable home-manager modules (git, zsh, mise, neovim, tmux, …); macOS-only pieces (Homebrew,
+hammerspoon, default-browser, `UseKeychain`, `mactop`/`macpm`) are excluded or `isDarwin`-guarded.
+
+```bash
+# Evaluate the NixOS config from the Mac (eval only; building Linux needs the linux-builder):
+nix build .#nixosConfigurations.nixos.config.system.build.toplevel --dry-run
+
+# Apply — run INSIDE the VM (the repo is mounted at /private/etc/nix-darwin via virtiofs).
+# Builds natively (the VM is aarch64-linux); the `rebuild` alias runs exactly this:
+orb -m nixos sudo nixos-rebuild switch --flake /private/etc/nix-darwin#nixos
+```
+
+Gotchas specific to the OrbStack VM:
+- **sshd stays disabled** (`nixos/orbstack/orbstack.nix`) — OrbStack provides SSH itself
+  (`orb -m nixos`, `ssh nixos@orb`). Do not enable `services.openssh`.
+- The `kod_admin` user + hostname + timezone + stateVersion (`25.11`) are owned by the copied
+  OrbStack files; set the login shell via `users.defaultUserShell` (the user has `useDefaultShell`).
+- `nixos/orbstack/` is OrbStack-generated — if OrbStack rewrites `/etc/nixos/*` on the VM, re-copy
+  and diff. Only `nixos/configuration.nix` is hand-maintained.
+- Bitwarden SSH agent isn't reachable at `~` in the VM (`/home/kod_admin`), so outbound git over
+  SSH from the VM won't use it yet (see the note in `home-manager/modules/ssh.nix`).
 
 ## Conventions & gotchas
 

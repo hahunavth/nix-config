@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
   # Manage zsh with home-manager (generates ~/.zshrc)
@@ -9,7 +9,7 @@
     syntaxHighlighting.enable = true;
 
     # Aliases live in home-manager/aliases/, split by domain
-    shellAliases = import ../aliases { inherit lib; };
+    shellAliases = import ../aliases { inherit lib pkgs; };
 
     # conda (miniconda Homebrew cask): make `conda activate` work in the
     # hm-managed zsh. Do NOT run `conda init` — it would try to edit the

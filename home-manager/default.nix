@@ -1,4 +1,7 @@
-# Home Manager entry point: composes the user environment from modules/.
+# Shared home-manager environment: modules that work on both macOS and Linux.
+# Platform-specific entry points import this and add their own extras:
+#   darwin.nix -> this + default-browser + hammerspoon
+#   linux.nix  -> this (+ future Linux-only modules)
 # User identity (username, homeDirectory, stateVersion) is set by the flake
 # from the validated hosts.nix entry.
 { ... }:
@@ -18,8 +21,6 @@
     ./modules/tmux.nix
     ./modules/direnv.nix
     ./modules/nh.nix
-    ./modules/default-browser.nix
-    ./modules/hammerspoon.nix
 
     # Dev toolchains
     ./modules/mise.nix

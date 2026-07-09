@@ -1,4 +1,8 @@
-{ ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   programs.ssh = {
@@ -6,9 +10,9 @@
     # Set things explicitly instead of relying on defaults
     enableDefaultConfig = false;
 
-    # Lets `ssh orb` reach OrbStack Linux VMs/containers
+    # Lets `ssh orb` reach OrbStack Linux VMs/containers (macOS-side path).
     # (must be included before any Host block)
-    includes = [ "~/.orbstack/ssh/config" ];
+    includes = lib.optionals pkgs.stdenv.isDarwin [ "~/.orbstack/ssh/config" ];
 
     settings = {
       "*" = {
@@ -16,12 +20,21 @@
         AddKeysToAgent = "yes";
         # Keep connections alive (keepalive every 60s)
         ServerAliveInterval = 60;
-        # Store passphrases in the macOS Keychain
-        UseKeychain = "yes";
         # Use Bitwarden Desktop as the SSH agent (keys in the vault, unlocked by
         # Touch ID). Enable it in Bitwarden → Settings → "Enable SSH agent".
         # Hosts below that set IdentitiesOnly=yes keep using their on-disk keys.
+        # NOTE (Linux): on the OrbStack VM ~ is /home/kod_admin, where this
+        # socket does not exist (Bitwarden runs on the Mac, socket under
+        # /Users/kod_admin). ssh tolerates a missing agent, but outbound auth to
+        # hosts with IdentitiesOnly=yes (e.g. github.com) won't work from the VM
+        # until an agent is wired up there — revisit if git push from the VM is
+        # needed (OrbStack forwards the Mac ssh-agent; see forward_ssh_agent).
         IdentityAgent = "~/.bitwarden-ssh-agent.sock";
+      }
+      // lib.optionalAttrs pkgs.stdenv.isDarwin {
+        # Store passphrases in the macOS Keychain. Apple-only OpenSSH option —
+        # it's an unknown keyword on stock Linux OpenSSH and would error out.
+        UseKeychain = "yes";
       };
 
       # Per-host config (migrated from the old machine's ~/.ssh/config backup).

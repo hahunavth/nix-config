@@ -6,4 +6,5 @@
   "rectangle" # Window snapping / management
   "shottr" # Screenshot tool w/ annotation
   "hammerspoon" # Lua automation; plays copy/paste sounds (see modules/hammerspoon.nix)
+  "stats" # Menu-bar system monitor (network up/down speed, CPU, RAM, ...)
 ]

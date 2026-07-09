@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   # Runtime version manager. Global defaults are below; per-project versions
@@ -13,7 +13,8 @@
         # Implicitly trust mise configs under the work-repos root, so the
         # atlas-mise-generated .mise.local.toml never hits the trust prompt
         # (trust is stored per-path and breaks on renames/moves otherwise).
-        trusted_config_paths = [ "/Volumes/ext_ssd" ];
+        # /Volumes/ext_ssd is the macOS external drive; meaningless on Linux.
+        trusted_config_paths = pkgs.lib.optionals pkgs.stdenv.isDarwin [ "/Volumes/ext_ssd" ];
       };
 
       tools = {

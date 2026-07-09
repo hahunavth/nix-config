@@ -25,9 +25,12 @@
       };
 
       # Per-host config (migrated from the old machine's ~/.ssh/config backup).
-      # NOTE: the referenced key files (kod-work.pem, hahunavth,
-      # hahunavth-Bitbucket, hahunavth_claude) are not managed by nix —
-      # copy them over from the old machine and chmod 600 them.
+      # Private keys for hahunavth / hahunavth_claude live in Bitwarden and are
+      # served via the IdentityAgent above — do NOT put them on disk. ssh still
+      # needs their public keys on disk to pick which agent identity to use with
+      # IdentitiesOnly=yes; those .pub files are written declaratively below.
+      # The on-disk private keys kod-work.pem and hahunavth-Bitbucket are NOT
+      # managed by nix — copy them over and chmod 600 them.
       "192.168.120.33" = {
         HostName = "192.168.120.33";
         User = "kodnet";
@@ -105,5 +108,15 @@
         PasswordAuthentication = "yes";
       };
     };
+  };
+
+  # Public keys for the Bitwarden-held identities. Public keys are not secret;
+  # ssh reads them to select the matching key from the Bitwarden agent when a
+  # host sets IdentitiesOnly=yes. The private halves stay in the vault.
+  home.file = {
+    ".ssh/hahunavth.pub".text =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOENeobOHtVpV5+fH6NorHHYMYcljup3QysmEVBvpfiY vuthanhha.2001@gmail.com\n";
+    ".ssh/hahunavth_claude.pub".text =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKBtT0wTKIEC6zWmA1mTIp8hBd0+VjAAoQuTyH+jR22o claude-code@mac\n";
   };
 }

@@ -46,13 +46,11 @@ automatically uses the kodnet work email (via `programs.git.includes`). Check wi
   Input Source Pro Accessibility, possible App Management.
 - **Terminal font**: set to a Nerd Font (JetBrainsMono/FiraCode Nerd Font) or the
   starship powerline pills/logos won't render. iTerm2 renders them best.
-- **Bitwarden SSH agent**: enable in Bitwarden → Settings → "Enable SSH agent"
-  (ssh is configured to use `~/.bitwarden-ssh-agent.sock`).
 - **Keyboard type** (ANSI/ISO/JIS): if the top-left key types `§/±` instead of
   `` `/~ ``, fix it in the macOS Keyboard Setup Assistant — not with a remap.
 - **SSH key files**: hosts in `home-manager/modules/ssh.nix` reference on-disk keys
-  (`kod-work.pem`, `hahunavth`, …) that aren't managed by nix — copy them from the
-  old machine and `chmod 600`.
+  (`kod-work.pem`, `hahunavth`, `hahunavth_claude`, …) that aren't managed by nix —
+  copy them from the old machine (or export from Bitwarden) and `chmod 600`.
 
 ## Troubleshooting
 

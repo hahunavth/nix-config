@@ -20,16 +20,6 @@
         AddKeysToAgent = "yes";
         # Keep connections alive (keepalive every 60s)
         ServerAliveInterval = 60;
-        # Use Bitwarden Desktop as the SSH agent (keys in the vault, unlocked by
-        # Touch ID). Enable it in Bitwarden → Settings → "Enable SSH agent".
-        # Hosts below that set IdentitiesOnly=yes keep using their on-disk keys.
-        # NOTE (Linux): on the OrbStack VM ~ is /home/kod_admin, where this
-        # socket does not exist (Bitwarden runs on the Mac, socket under
-        # /Users/kod_admin). ssh tolerates a missing agent, but outbound auth to
-        # hosts with IdentitiesOnly=yes (e.g. github.com) won't work from the VM
-        # until an agent is wired up there — revisit if git push from the VM is
-        # needed (OrbStack forwards the Mac ssh-agent; see forward_ssh_agent).
-        IdentityAgent = "~/.bitwarden-ssh-agent.sock";
       }
       // lib.optionalAttrs pkgs.stdenv.isDarwin {
         # Store passphrases in the macOS Keychain. Apple-only OpenSSH option —
@@ -38,12 +28,10 @@
       };
 
       # Per-host config (migrated from the old machine's ~/.ssh/config backup).
-      # Private keys for hahunavth / hahunavth_claude live in Bitwarden and are
-      # served via the IdentityAgent above — do NOT put them on disk. ssh still
-      # needs their public keys on disk to pick which agent identity to use with
-      # IdentitiesOnly=yes; those .pub files are written declaratively below.
-      # The on-disk private keys kod-work.pem and hahunavth-Bitbucket are NOT
-      # managed by nix — copy them over and chmod 600 them.
+      # Private keys (hahunavth, hahunavth_claude, kod-work.pem,
+      # hahunavth-Bitbucket) are plain files in ~/.ssh, NOT managed by nix —
+      # copy them over (export hahunavth/hahunavth_claude from Bitwarden) and
+      # chmod 600 them. The matching .pub files are written declaratively below.
       "192.168.120.33" = {
         HostName = "192.168.120.33";
         User = "kodnet";
@@ -123,9 +111,8 @@
     };
   };
 
-  # Public keys for the Bitwarden-held identities. Public keys are not secret;
-  # ssh reads them to select the matching key from the Bitwarden agent when a
-  # host sets IdentitiesOnly=yes. The private halves stay in the vault.
+  # Public keys for the hahunavth identities (public keys are not secret).
+  # The private halves are copied into ~/.ssh manually — see the note above.
   home.file = {
     ".ssh/hahunavth.pub".text =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOENeobOHtVpV5+fH6NorHHYMYcljup3QysmEVBvpfiY vuthanhha.2001@gmail.com\n";

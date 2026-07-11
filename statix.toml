@@ -1,0 +1,20 @@
+# statix configuration (used by `nix run nixpkgs#statix -- check` and CI).
+#
+# Disabled lints are opinionated *style* rules that conflict with this repo's
+# existing (and idiomatic) conventions — not correctness checks:
+#   empty_pattern       `{ ... }:` module signatures are intentional & clearer
+#   repeated_keys       `home.file."a".source` / `home.file."b".source` reads fine
+#   manual_inherit_from `lib = nixpkgs.lib;` is clearer than `inherit (nixpkgs) lib;`
+# All of statix's correctness/simplification lints stay active.
+disabled = [
+  "empty_pattern",
+  "repeated_keys",
+  "manual_inherit_from",
+]
+
+# Never lint generated or vendored trees.
+ignore = [
+  ".direnv",
+  "tmp",
+  "modules/nixos/orbstack",
+]

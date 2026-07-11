@@ -19,8 +19,8 @@ git clone <repo-url> /etc/nix-darwin
 ```
 
 `darwin-rebuild` auto-selects the `darwinConfigurations` entry matching the
-machine's hostname. Adding a new machine = a new `hosts/<hostname>/` dir + a
-`darwinConfigurations.<hostname>` entry in `flake.nix`.
+machine's hostname. Adding a new machine = a new file under `hosts/` plus an
+entry in `hosts/default.nix`; `flake.nix` picks it up automatically.
 
 ## Daily commands
 
@@ -48,7 +48,7 @@ automatically uses the kodnet work email (via `programs.git.includes`). Check wi
   starship powerline pills/logos won't render. iTerm2 renders them best.
 - **Keyboard type** (ANSI/ISO/JIS): if the top-left key types `§/±` instead of
   `` `/~ ``, fix it in the macOS Keyboard Setup Assistant — not with a remap.
-- **SSH key files**: hosts in `home-manager/modules/ssh.nix` reference on-disk keys
+- **SSH key files**: hosts in `modules/shared/programs/ssh.nix` reference on-disk keys
   (`kod-work.pem`, `hahunavth`, `hahunavth_claude`, …) that aren't managed by nix —
   copy them from the old machine (or export from Bitwarden) and `chmod 600`.
 

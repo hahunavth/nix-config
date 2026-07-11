@@ -16,23 +16,27 @@
 
     # Declarative management of the Homebrew installation itself
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+
+    # Secrets management (age-encrypted; see home-manager/modules/secrets.nix).
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Multi-language formatter wiring for `nix fmt` (config in ./treefmt.nix).
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
-    {
-      self,
+    inputs@{
       nixpkgs,
       nixpkgs-linux,
-      nix-darwin,
-      home-manager,
-      nix-homebrew,
       ...
     }:
     let
       lib = nixpkgs.lib;
 
-      # Machine registry: hosts.nix entries, validated and enriched by lib/hosts.nix
-      hostConfig = import ./lib/hosts.nix { hostsPath = ./hosts.nix; };
+      # Machine registry: hosts/ entries, validated and enriched by lib/hosts.nix
+      hostConfig = import ./lib/hosts.nix { hostsPath = ./hosts; };
       inherit (hostConfig) validatedConfigsChecked;
 
       # Partition hosts by platform (userConfig.system, e.g. aarch64-darwin).
@@ -40,90 +44,8 @@
       darwinHosts = builtins.filter isDarwinHost validatedConfigsChecked;
       nixosHosts = builtins.filter (h: !isDarwinHost h) validatedConfigsChecked;
 
-      mkDarwinConfiguration =
-        userConfig:
-        nix-darwin.lib.darwinSystem {
-          specialArgs = { inherit userConfig self; };
-          modules = [
-            { nixpkgs.hostPlatform = userConfig.system; }
-
-            # System configuration (darwin/)
-            ./darwin/configuration.nix
-            ./darwin/nix-settings.nix
-            ./darwin/misc-system.nix
-            ./darwin/security.nix
-            ./darwin/linux-builder.nix
-            ./darwin/fonts.nix
-            ./darwin/macos-defaults.nix
-            ./darwin/raycast-beta.nix
-
-            # User environment (home-manager/)
-            home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                # Automatically back up any pre-existing files that would
-                # otherwise be clobbered (e.g. ~/Applications/Home Manager Apps)
-                backupFileExtension = "backup";
-                extraSpecialArgs = { inherit userConfig; };
-                users.${userConfig.username} =
-                  { lib, ... }:
-                  {
-                    imports = [ ./home-manager/darwin.nix ];
-                    home = {
-                      username = lib.mkForce userConfig.username;
-                      # lib.mkForce works around nix-darwin issue #682
-                      homeDirectory = lib.mkForce "/Users/${userConfig.username}";
-                      # home-manager version (be careful when changing)
-                      stateVersion = "26.05";
-                    };
-                    programs.home-manager.enable = true;
-                  };
-              };
-            }
-
-            # Homebrew (installation + composed package lists)
-            nix-homebrew.darwinModules.nix-homebrew
-            ./darwin/homebrew.nix
-          ];
-        };
-
-      mkNixosConfiguration =
-        userConfig:
-        nixpkgs-linux.lib.nixosSystem {
-          specialArgs = { inherit userConfig self; };
-          modules = [
-            { nixpkgs.hostPlatform = userConfig.system; }
-
-            # OrbStack-generated guest integration (copied from the VM's
-            # /etc/nixos; re-sync if OrbStack regenerates it) + our system layer.
-            ./nixos/orbstack/configuration.nix
-            ./nixos/configuration.nix
-
-            # User environment (home-manager/)
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "backup";
-                extraSpecialArgs = { inherit userConfig; };
-                users.${userConfig.username} =
-                  { lib, ... }:
-                  {
-                    imports = [ ./home-manager/linux.nix ];
-                    home = {
-                      username = lib.mkForce userConfig.username;
-                      homeDirectory = lib.mkForce "/home/${userConfig.username}";
-                      stateVersion = "26.05";
-                    };
-                    programs.home-manager.enable = true;
-                  };
-              };
-            }
-          ];
-        };
+      # Darwin/NixOS builders (shared home-manager wiring lives in lib/mk-home.nix).
+      inherit (import ./lib/mk-system.nix { inherit inputs; }) mkDarwin mkNixos;
 
       # devShell / formatter for both the Mac and the Linux VM. Pick pkgs from
       # the matching nixpkgs per system.
@@ -144,7 +66,7 @@
       darwinConfigurations = builtins.listToAttrs (
         builtins.map (userConfig: {
           name = userConfig.hostname;
-          value = mkDarwinConfiguration userConfig;
+          value = mkDarwin userConfig;
         }) darwinHosts
       );
 
@@ -152,23 +74,60 @@
       nixosConfigurations = builtins.listToAttrs (
         builtins.map (userConfig: {
           name = userConfig.hostname;
-          value = mkNixosConfiguration userConfig;
+          value = mkNixos userConfig;
         }) nixosHosts
       );
 
-      # Dev shell for editing this config repo (enter with `nix develop`)
-      devShells = forAllSystems (pkgs: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [
-            nixfmt-rfc-style # formatter
-            statix # anti-pattern linter
-            deadnix # dead-code finder
-            nil # Nix LSP (editor completion)
-          ];
-        };
-      });
+      # Custom packages (pkgs/), exported per system. Build one with
+      # `nix build .#raycast-beta`.
+      packages = forAllSystems (pkgs: import ./pkgs { inherit pkgs; });
 
-      # `nix fmt` formats every .nix file
-      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
+      # `nix flake check` builds these, so a rotted fetchurl URL/hash fails loudly
+      # instead of only at rebuild time.
+      checks = forAllSystems (pkgs: import ./pkgs { inherit pkgs; });
+
+      # Project dev shells (shells/), entered with `nix develop .#<name>`.
+      devShells = forAllSystems (
+        pkgs:
+        let
+          importShell = name: import (./shells + "/${name}.nix") { inherit pkgs; };
+        in
+        {
+          default = importShell "default";
+          atlassian = importShell "atlassian";
+          node = importShell "node";
+          python = importShell "python";
+        }
+      );
+
+      # `nix run .#build-switch` — build + switch the CURRENT machine's config,
+      # picking the darwinConfigurations/nixosConfigurations entry by hostname.
+      apps = forAllSystems (
+        pkgs:
+        let
+          isDarwin = pkgs.stdenv.isDarwin;
+          rebuild = if isDarwin then "darwin-rebuild" else "nixos-rebuild";
+          flakeDir = if isDarwin then "/etc/nix-darwin" else "/private/etc/nix-darwin";
+          hostCmd = if isDarwin then "scutil --get LocalHostName" else "hostname -s";
+          script = pkgs.writeShellScript "build-switch" ''
+            set -euo pipefail
+            host="$(${hostCmd})"
+            echo "Building + switching (${rebuild}) for host: $host"
+            exec sudo ${rebuild} switch --flake "${flakeDir}#$host"
+          '';
+        in
+        {
+          build-switch = {
+            type = "app";
+            program = "${script}";
+          };
+        }
+      );
+
+      # `nix fmt` runs treefmt (config in ./treefmt.nix) — nixfmt over all .nix
+      # files except the generated/vendored trees.
+      formatter = forAllSystems (
+        pkgs: (inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix).config.build.wrapper
+      );
     };
 }

@@ -1,0 +1,67 @@
+name: check
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: format (treefmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: nix fmt leaves no diff
+        run: |
+          nix fmt
+          git diff --exit-code || {
+            echo "::error::Run 'nix fmt' and commit the result."; exit 1; }
+
+  lint:
+    name: lint (statix + deadnix)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: statix
+        run: nix run nixpkgs#statix -- check .
+      - name: deadnix
+        run: git ls-files '*.nix' | grep -v '^modules/nixos/orbstack/' | xargs nix run nixpkgs#deadnix -- --fail
+
+  eval:
+    name: eval all host configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: darwin + nixos configs evaluate
+        run: |
+          for h in $(nix eval --json '.#darwinConfigurations' --apply builtins.attrNames | nix run nixpkgs#jq -- -r '.[]'); do
+            echo "== darwin: $h =="
+            nix eval ".#darwinConfigurations.\"$h\".config.system.build.toplevel.drvPath"
+          done
+          for h in $(nix eval --json '.#nixosConfigurations' --apply builtins.attrNames | nix run nixpkgs#jq -- -r '.[]'); do
+            echo "== nixos: $h =="
+            nix eval ".#nixosConfigurations.\"$h\".config.system.build.toplevel.drvPath"
+          done
+
+  build-darwin:
+    name: build darwin packages + dry-run system
+    runs-on: macos-latest # macos-14+ = aarch64-darwin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: build exported packages (validates custom fetchurl hashes)
+        run: nix build --print-build-logs .#checks.aarch64-darwin.atlassian-plugin-sdk-8_2_7 .#checks.aarch64-darwin.atlassian-plugin-sdk-9_1_1
+      - name: dry-run each darwin system closure
+        run: |
+          for h in $(nix eval --json '.#darwinConfigurations' --apply builtins.attrNames | nix run nixpkgs#jq -- -r '.[]'); do
+            echo "== dry-run: $h =="
+            nix build ".#darwinConfigurations.\"$h\".system" --dry-run
+          done

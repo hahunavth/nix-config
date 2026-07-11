@@ -1,4 +1,4 @@
-# Host registry loader: validates and enriches hosts.nix entries.
+# Host registry loader: validates and enriches hosts/ entries.
 # Adapted from mlgruby/dotfile-nix (lib/hosts.nix).
 { hostsPath }:
 let
@@ -30,6 +30,10 @@ let
       # Nix platform double. Defaults to Apple Silicon so existing macOS hosts
       # need no change; Linux hosts (e.g. the OrbStack dev VM) set it explicitly.
       system = mergedConfig.system or "aarch64-darwin";
+      # Per-host feature toggles, consumed by home-manager/modules/features.nix
+      # (hn.* options) and by darwin/linux-builder.nix. Freeform: unset keys fall
+      # back to per-profile / per-platform defaults. Empty by default.
+      features = mergedConfig.features or { };
     };
 
   validateConfig =
@@ -70,15 +74,15 @@ let
   sourceConfigs =
     if !hostsConfigPresent then
       throw ''
-        hosts.nix not found.
-        Create it from hosts.example.nix:
-          cp hosts.example.nix hosts.nix
+        hosts config not found.
+        Create hosts/ from hosts.example.nix:
+          mkdir -p hosts && cp hosts.example.nix hosts/default.nix
       ''
     else if builtins.length hostsEntryNames == 0 then
-      throw "hosts.nix is missing entries under `hosts`."
+      throw "Host config is missing entries under `hosts`."
     else
       builtins.map (name: {
-        sourceName = "hosts.nix:${name}";
+        sourceName = "hosts:${name}";
         rawConfig = hostsEntries.${name};
         commonConfig = hostsCommonConfig;
       }) hostsEntryNames;

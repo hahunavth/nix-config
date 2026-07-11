@@ -1,4 +1,4 @@
-{ pkgs, lib }:
+{ pkgs, ... }:
 
 pkgs.fetchurl {
   url = "https://x-r2.raycast-releases.com/Raycast_Beta_0.67.1.0_ee5f4a9914_arm64.dmg";

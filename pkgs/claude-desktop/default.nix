@@ -31,10 +31,12 @@
   glib,
   gtk3,
   libayatana-appindicator,
+  libcap_ng,
   libdrm,
   libGL,
   libgbm,
   libnotify,
+  libseccomp,
   libsecret,
   libuuid,
   libxkbcommon,
@@ -88,9 +90,13 @@ stdenv.mkDerivation (finalAttrs: {
     glib
     gtk3
     libayatana-appindicator
+    # libseccomp + libcap_ng: needed by the bundled `resources/virtiofsd`
+    # (Claude's "Cowork" local-VM feature). Without them autoPatchelf aborts.
+    libcap_ng
     libdrm
     libgbm
     libnotify
+    libseccomp
     libsecret
     libuuid
     libxkbcommon

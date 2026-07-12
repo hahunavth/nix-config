@@ -19,6 +19,7 @@
     "microsoft-teams"
     "remote-desktop-manager"
     "slack"
+    "teamviewer"
     "zoom"
   ];
 }

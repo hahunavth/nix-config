@@ -8,6 +8,7 @@
     vscode # unfree
     google-chrome # unfree
     vlc
+    anydesk # remote desktop (unfree)
     claude-code
     opencode # AI coding agent (terminal/TUI)
     python314

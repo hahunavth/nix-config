@@ -15,6 +15,7 @@
   # Corporate apps unique to this machine; merge with the shared cask base in
   # modules/darwin/homebrew/ (homebrew.casks is a list option).
   homebrew.casks = [
+    "anydesk" # remote desktop
     "microsoft-office" # Word, Excel, PowerPoint, OneNote
     "microsoft-teams"
     "remote-desktop-manager"

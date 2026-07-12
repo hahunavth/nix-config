@@ -65,9 +65,12 @@
   services.xrdp.openFirewall = true; # opens port 3389
   services.teamviewer.enable = true; # daemon + app (unfree; manages its own connectivity)
 
-  # Claude Desktop is packaged from Anthropic's official Linux .deb (pkgs/claude-desktop).
+  # GUI apps packaged from upstream .debs (pkgs/{claude-desktop,opencode-desktop}).
   # Installed at system level because `self` is only in the system specialArgs, not home.nix.
-  environment.systemPackages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.claude-desktop ];
+  environment.systemPackages = [
+    self.packages.${pkgs.stdenv.hostPlatform.system}.claude-desktop
+    self.packages.${pkgs.stdenv.hostPlatform.system}.opencode-desktop
+  ];
 
   # Set to the NixOS release you installed from; do not bump casually.
   system.stateVersion = "26.05";

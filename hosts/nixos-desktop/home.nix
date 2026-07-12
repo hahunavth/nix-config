@@ -9,6 +9,7 @@
     google-chrome # unfree
     vlc
     claude-code
+    opencode # AI coding agent (terminal/TUI)
     python314
     htop
   ];

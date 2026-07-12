@@ -117,6 +117,11 @@ stdenv.mkDerivation (finalAttrs: {
     libnotify
   ];
 
+  # The .deb bundles musl builds of some optional node addons (@parcel/watcher,
+  # @msgpackr-extract) alongside their glibc builds. On glibc NixOS the musl ones
+  # are never loaded, so ignore their unresolvable musl libc rather than failing.
+  autoPatchelfIgnoreMissingDeps = [ "libc.musl-x86_64.so.1" ];
+
   # We wrap ourselves (below) to also inject --no-sandbox.
   dontWrapGApps = true;
 

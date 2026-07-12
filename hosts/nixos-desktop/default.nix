@@ -58,10 +58,13 @@
     initialPassword = "changeme";
   };
 
+  # No lock screen: disable the XFCE screensaver (which handles session locking).
+  services.xserver.desktopManager.xfce.enableScreensaver = false;
+
   # Remote access.
   services.openssh.enable = true; # ssh (opens port 22)
-  services.xrdp.enable = true; # rdp — starts an Xorg GNOME session
-  services.xrdp.defaultWindowManager = "gnome-session";
+  services.xrdp.enable = true; # rdp — serves an Xorg XFCE session
+  services.xrdp.defaultWindowManager = "xfce4-session";
   services.xrdp.openFirewall = true; # opens port 3389
   services.teamviewer.enable = true; # daemon + app (unfree; manages its own connectivity)
 

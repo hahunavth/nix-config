@@ -1,16 +1,20 @@
-# Reusable GUI layer for NixOS desktop hosts: GNOME on Wayland + VM guest tools.
+# Reusable GUI layer for NixOS desktop hosts: XFCE on Xorg + VM guest tools.
 # Imported by a host's per-host bundle (e.g. hosts/nixos-desktop/default.nix).
-# Option names verified against NixOS 25.11/26.05.
+#
+# XFCE (Xorg) rather than GNOME: GNOME 50 (nixpkgs 26.05) is Wayland-only, and an
+# Xorg session is what works reliably under VMs and with xrdp.
+# Option names verified against NixOS 26.05.
 { ... }:
 
 {
-  # X server is still the umbrella for keymap/GNOME even on Wayland.
+  # X server + keymap.
   services.xserver.enable = true;
   services.xserver.xkb.layout = "us";
 
-  # GDM display manager + GNOME desktop.
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
+  # LightDM display manager + XFCE desktop (both Xorg).
+  services.xserver.displayManager.lightdm.enable = true;
+  services.xserver.desktopManager.xfce.enable = true;
+  services.displayManager.defaultSession = "xfce";
 
   # VM guest integration. Default = QEMU/KVM/SPICE (clipboard + display
   # auto-resize). For a different hypervisor swap these for

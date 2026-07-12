@@ -1,21 +1,19 @@
-# Wires nix-homebrew into nix-darwin and composes common Homebrew packages
-# with profile-specific overrides.
+# Wires nix-homebrew into nix-darwin and sets the SHARED base package lists.
 #
-# Shared package lists live beside this file (taps.nix, brews/, casks/). Profile
-# overrides live in ./profiles/. Edit those, not this file.
+# Base lists (taps.nix, brews/, casks/) apply to every macOS host. Host-specific
+# casks/brews are owned by that host's own module in
+# hosts/<name>/default.nix — `homebrew.casks` etc. are list options, so
+# a host's entries merge with these.
 #
 # Note: the Atlassian Plugin SDK is NOT installed via Homebrew — its tap has
 # broken formula class names and the atlas-* binaries collide on link; both SDK
 # versions are pinned via pkgs/atlassian-plugin-sdk.
 { userConfig, ... }:
 let
-  homebrewLib = import ./lib.nix;
-  profileName = userConfig.profile or "personal";
-  common = import ./profiles/common.nix;
-  profile = import (./profiles + "/${profileName}.nix");
-  taps = homebrewLib.composeList common.taps profile.extraTaps profile.removeTaps;
-  brews = homebrewLib.composeList common.brews profile.extraBrews profile.removeBrews;
-  casks = homebrewLib.composeList common.casks profile.extraCasks profile.removeCasks;
+  taps = import ./taps.nix;
+  brews = import ./brews/core.nix;
+  casks =
+    (import ./casks/apps.nix) ++ (import ./casks/development.nix) ++ (import ./casks/system.nix);
 in
 {
   # Manage the Homebrew installation itself declaratively
@@ -37,8 +35,5 @@ in
       cleanup = "zap"; # removes casks/formulae not listed here on rebuild
       extraFlags = [ "--verbose" ]; # shows real per-cask progress
     };
-
-    # Mac App Store apps
-    masApps = common.masApps // profile.masApps;
   };
 }

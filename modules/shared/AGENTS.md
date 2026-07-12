@@ -7,7 +7,7 @@ entries ([`../darwin/home`](../darwin/home), [`../nixos/home`](../nixos/home)) p
 
 ```
 default.nix     # imports features + files + packages/ + programs/
-features.nix    # hn.* feature registry (per-host toggles) — see ../../AGENTS.md
+features.nix    # hn.* feature registry (options only; each host sets them in hosts/<name>/home.nix)
 files.nix       # static dotfiles (home.file / xdg.configFile)
 programs/       # per-program modules (git, zsh, mise, atlassian-*, …) — see programs/AGENTS.md
 packages/       # categorized CLI packages (development.nix, system.nix)

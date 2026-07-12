@@ -1,4 +1,4 @@
-{ pkgs, userConfig, ... }:
+{ pkgs, ... }:
 
 {
   ids.gids.nixbld = 350;
@@ -13,10 +13,6 @@
     git
   ];
 
-  # Machine identity comes from the hosts.nix registry
-  networking = {
-    hostName = userConfig.hostname;
-    computerName = userConfig.hostname;
-    localHostName = userConfig.hostname;
-  };
+  # Machine identity (hostName/computerName/localHostName) is owned by the host:
+  # see hosts/<name>/default.nix.
 }

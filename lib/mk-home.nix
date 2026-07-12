@@ -5,14 +5,16 @@
 # caller — this only carries the shared options + per-user config.
 #
 # Args:
-#   userConfig     validated host entry (identity + features)
+#   userConfig     global identity (username + emails + github), threaded to HM modules
 #   homePrefix     "/Users" (darwin) or "/home" (linux)
-#   entry          the home-manager entry point to import (darwin.nix / linux.nix)
+#   entry          the platform home entry point (modules/{darwin,nixos}/home)
+#   hostHome       the host's own home module (hosts/<name>/home.nix)
 #   sharedModules  extra HM modules applied to every user (e.g. sops-nix)
 {
   userConfig,
   homePrefix,
   entry,
+  hostHome,
   sharedModules ? [ ],
 }:
 {
@@ -27,7 +29,10 @@
     users.${userConfig.username} =
       { lib, ... }:
       {
-        imports = [ entry ];
+        imports = [
+          entry
+          hostHome
+        ];
         home = {
           username = lib.mkForce userConfig.username;
           # lib.mkForce works around nix-darwin issue #682

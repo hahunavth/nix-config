@@ -6,59 +6,46 @@ How a `darwin-rebuild` / `nixos-rebuild` turns the files in this repo into a sys
 
 ```mermaid
 flowchart TD
-  subgraph "1. Registry (data)"
-    C[hosts/common.nix<br/>shared identity] --> DEF[hosts/default.nix]
-    W[hosts/work.nix] --> DEF
-    NX[hosts/nixos.nix] --> DEF
-    DEF --> LIB[lib/hosts.nix<br/>validate + enrich + dedupe]
-    LIB --> UC[/userConfig list/]
-  end
-  UC --> FLK[flake.nix + lib/mk-system.nix]
-  FLK -->|filter *-darwin| DC[darwinConfigurations.&lt;hostname&gt;]
-  FLK -->|filter *-linux| NC[nixosConfigurations.&lt;hostname&gt;]
+  FLK[flake.nix<br/>global identity + host list]
+  FLK --> DC["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/work"]
+  FLK --> NC["nixosConfigurations.&lt;name&gt;<br/>= mkNixos ./hosts/&lt;name&gt;"]
 
-  subgraph "2. macOS closure"
-    DC --> DD[modules/darwin/default.nix]
-    DD --> DMOD[configuration · nix-settings · misc-system ·<br/>security · linux-builder · fonts ·<br/>macos-defaults · raycast-beta · homebrew]
-    DD --> HMD[modules/darwin/home]
-    DC --> BREW[nix-homebrew + profile-composed<br/>taps/brews/casks]
+  subgraph "The host OWNS its config"
+    DC --> HW1[hosts/work/default.nix + home.nix]
+    NC --> HW2[hosts/&lt;name&gt;/default.nix + home.nix]
   end
 
-  subgraph "3. Linux closure"
-    NC --> ND[modules/nixos/default.nix]
-    ND --> ORB[orbstack/* generated guest config]
-    ND --> NCFG[modules/nixos/configuration.nix our layer]
-    NC --> HML[modules/nixos/home]
-  end
-
-  HMD --> HMS[modules/shared<br/>shared home modules]
-  HML --> HMS
+  HW1 --> PD[modules/darwin<br/>platform base + homebrew]
+  HW2 --> PN[modules/nixos<br/>platform base + orbstack/desktop]
+  HW1 --> HMS[modules/shared<br/>shared home core]
+  HW2 --> HMS
   HMS --> MISE[mise-managed toolchains]
 ```
 
-## The three layers
+## The layers
 
-1. **Data** (`hosts/` + `lib/hosts.nix`) — the single source of *identity* and
-   *machine facts*. `userConfig` is threaded everywhere via `specialArgs`, so no
-   module hardcodes a username, email, or hostname. Validation happens here (see
-   [`../lib/AGENTS.md`](../lib/AGENTS.md)).
+1. **Hosts** (`hosts/<name>/`) — each machine OWNS its config: `default.nix` (system)
+   sets `nixpkgs.hostPlatform` + `networking.hostName` + machine-specific config and
+   imports the reusable pieces it wants; `home.nix` sets its `hn.*` toggles + host
+   home. See [`../hosts/AGENTS.md`](../hosts/AGENTS.md).
 
-2. **Logic** (`lib/mk-system.nix` + `lib/mk-home.nix`) — pure builders that assemble
-   the module layers into a darwin/nixos configuration.
+2. **Builders** (`lib/mk-system.nix` + `lib/mk-home.nix`) — turn a host directory into
+   a darwin/nixos configuration, adding the platform base + shared home core. Identity
+   is global in `flake.nix`, threaded to every module as `userConfig`.
 
-3. **Modules** — the config building blocks, grouped by scope:
-   - macOS system: [`../modules/darwin/default.nix`](../modules/darwin/default.nix)
-     imports the nix-darwin modules and wires Homebrew.
-   - Linux system: [`../modules/nixos/default.nix`](../modules/nixos/default.nix)
-     imports the OrbStack guest config (generated) plus our hand-maintained layer.
-   - User env: [`../modules/shared`](../modules/shared), shared across both platforms;
-     each platform's `home/` adds OS-only extras. Runtimes come from **mise**, not nix.
+3. **Modules** — the reusable layers a host imports:
+   - macOS platform: [`../modules/darwin`](../modules/darwin) (nix-darwin defaults +
+     the Homebrew base).
+   - Linux platform: [`../modules/nixos`](../modules/nixos) (base + `orbstack/`,
+     `desktop/` a host can import).
+   - User env: [`../modules/shared`](../modules/shared), on every host; each platform's
+     `home/` adds OS-only extras. Runtimes come from **mise**, not nix.
 
 ## Why this shape
 
-- **One flake, many hosts/platforms**: `flake.nix` maps over the validated host
-  list and partitions by `system` suffix — adding a machine is a data change in
-  `hosts/`, not a code change in the flake.
+- **Each host owns its 10%**: open `hosts/<name>/` to see everything unique to that
+  machine; the reusable layers stay in `modules/`. Adding a machine is a new
+  `hosts/<name>/` dir + one line in `flake.nix`.
 - **Homebrew is complementary, not a fallback**: GUI apps live in casks (nix-homebrew
   manages the Homebrew install itself); CLI tools live in nix. `cleanup = "zap"`
   keeps the cask set exactly equal to what's declared.

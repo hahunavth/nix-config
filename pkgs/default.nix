@@ -27,3 +27,7 @@ in
     inherit (pkgs) lib;
   };
 }
+# Claude Desktop is repackaged from Anthropic's amd64 Linux .deb (x86_64-linux only).
+// lib.optionalAttrs (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+  claude-desktop = pkgs.callPackage ./claude-desktop { };
+}

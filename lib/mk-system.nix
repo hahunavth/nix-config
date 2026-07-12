@@ -1,7 +1,17 @@
-# System builders: turn a validated userConfig into a darwin/nixos configuration.
-# Keeps flake.nix thin — the two builders differ only in platform module, HM
-# module, home prefix, entry point, and (darwin-only) the nix-homebrew module.
-{ inputs }:
+# System builders: turn a host directory into a darwin/nixos configuration.
+#
+# A host owns its config in hosts/<name>/ (default.nix = system module, home.nix =
+# home module). These builders add the reusable layers around it: the platform
+# base (modules/darwin | modules/nixos), the shared home core (modules/*/home),
+# the sops HM module, and (darwin) nix-homebrew. The host's default.nix sets its
+# own `nixpkgs.hostPlatform`, so no `system` arg is passed to darwin/nixosSystem.
+#
+# `identity` (username + emails + github) is global and threaded to every module
+# as `userConfig` via specialArgs.
+{
+  inputs,
+  identity,
+}:
 let
   inherit (inputs)
     self
@@ -12,51 +22,56 @@ let
     sops-nix
     ;
   mkHome = import ./mk-home.nix;
-
-  # HM modules applied to every user. sops-nix is present but inert until a host
-  # sets `hn.secrets.enable` (see modules/shared/programs/secrets.nix).
   sharedModules = [ sops-nix.homeManagerModules.sops ];
 in
 {
+  # hostPath e.g. ./hosts/work — a directory with default.nix + home.nix.
   mkDarwin =
-    userConfig:
+    hostPath:
     nix-darwin.lib.darwinSystem {
-      specialArgs = { inherit userConfig self; };
+      specialArgs = {
+        userConfig = identity;
+        inherit self;
+      };
       modules = [
-        { nixpkgs.hostPlatform = userConfig.system; }
-
-        # System configuration (modules/darwin/)
+        # Shared macOS platform layer
         ../modules/darwin
-
-        # User environment (modules/shared + macOS-only home)
+        # This host's own system config
+        (hostPath + "/default.nix")
+        # User environment: shared core + this host's home
         home-manager.darwinModules.home-manager
         (mkHome {
-          inherit userConfig sharedModules;
+          userConfig = identity;
+          inherit sharedModules;
           homePrefix = "/Users";
           entry = ../modules/darwin/home;
+          hostHome = hostPath + "/home.nix";
         })
-
-        # Homebrew installation module (darwin/default.nix imports the config)
+        # Homebrew installation module
         nix-homebrew.darwinModules.nix-homebrew
       ];
     };
 
   mkNixos =
-    userConfig:
+    hostPath:
     nixpkgs-linux.lib.nixosSystem {
-      specialArgs = { inherit userConfig self; };
+      specialArgs = {
+        userConfig = identity;
+        inherit self;
+      };
       modules = [
-        { nixpkgs.hostPlatform = userConfig.system; }
-
-        # OrbStack-generated guest integration + our shared NixOS layer.
+        # Shared NixOS platform layer
         ../modules/nixos
-
-        # User environment (modules/shared + linux-only home)
+        # This host's own system config (hardware/desktop, or OrbStack)
+        (hostPath + "/default.nix")
+        # User environment: shared core + this host's home
         home-manager.nixosModules.home-manager
         (mkHome {
-          inherit userConfig sharedModules;
+          userConfig = identity;
+          inherit sharedModules;
           homePrefix = "/home";
           entry = ../modules/nixos/home;
+          hostHome = hostPath + "/home.nix";
         })
       ];
     };

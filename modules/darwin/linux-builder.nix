@@ -1,11 +1,10 @@
-{ lib, userConfig, ... }:
+{ ... }:
 
-# Darwin-level feature gate. The home-manager `hn.*` options live in a separate
-# module system, so darwin modules read the per-host `features` set directly.
-lib.mkIf (userConfig.features.linuxBuilder or true) {
+{
   # Build Linux/NixOS artifacts from the Mac via a managed lightweight Linux VM
   # (aarch64-linux by default). Heavy: runs a background VM; first switch fetches
-  # and starts the builder image. Set `features.linuxBuilder = false` to disable.
+  # and starts the builder image. To disable on a host, set
+  # `nix.linux-builder.enable = false;` in its hosts/<name>/default.nix.
   nix.linux-builder = {
     enable = true;
     maxJobs = 4;

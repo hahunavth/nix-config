@@ -1,31 +1,29 @@
 # lib — AGENTS.md
 
-Pure logic — no system config. Three files:
+Pure logic — the system builders. No validation registry (removed): hosts own
+their config in `hosts/<name>/`, and the single user's identity is global in
+`flake.nix`.
 
-- **`hosts.nix`** — the host-registry loader. Reads [`../hosts/`](../hosts), validates
-  every entry, enriches it with defaults, returns `validatedConfigsChecked` (the
-  `userConfig` list the flake partitions into darwin/nixos configurations).
-- **`mk-system.nix`** — `mkDarwin`/`mkNixos` builders: assemble the `modules/`
-  layers (system + `…/home/` + shared) into a configuration. Keeps flake.nix thin.
-- **`mk-home.nix`** — the shared home-manager wiring used by both builders.
+- **`mk-system.nix`** — `{ inputs, identity }` → `mkDarwin`/`mkNixos`, each taking a
+  **host directory** (`./hosts/<name>`). Assembles: the platform base
+  (`modules/darwin` | `modules/nixos`), the host's own `default.nix`, the home
+  wiring, and (darwin) `nix-homebrew`. `identity` is threaded to every module as
+  `userConfig` via `specialArgs`.
+- **`mk-home.nix`** — the shared home-manager wiring: imports the platform home
+  entry (`modules/*/home`) **plus** the host's `home.nix`, under
+  `home-manager.users.${identity.username}`.
 
-## Validation contract (what a host entry must satisfy)
+## How a host is built
 
-- **Required attrs**: `username`, `hostname`, `fullName`, `githubUsername`
-  (`fullName`/`githubUsername` usually come from `hosts/common.nix`).
-- **`hostname`** must match `[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*` and be **unique** across
-  all hosts (duplicates throw).
-- **`email`**, if set, must look like an email.
-- **`profile`** ∈ `{ personal, work }`.
-- **`system`** ∈ `{ aarch64-darwin, x86_64-darwin, aarch64-linux, x86_64-linux }`;
-  defaults to `aarch64-darwin`. A `*-linux` system routes the host to
-  `nixosConfigurations` instead of `darwinConfigurations`.
-- Optional with defaults: `workEmail`, `signingKey` (both default `""`), `profile`
-  (`personal`), `system` (`aarch64-darwin`).
+`flake.nix` lists hosts explicitly, e.g.
+`darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/work;`. The host's
+`default.nix` sets its own `nixpkgs.hostPlatform` (so no `system` arg is passed) and
+`networking.hostName`, and owns its machine-specific config. See
+[`../hosts/AGENTS.md`](../hosts/AGENTS.md).
 
-## When editing
+## Note
 
-- Adding a new **field** to host entries means: give it a default in
-  `mkEnhancedConfig`, and (if it has a constrained value set) a check in
-  `validateConfig`. The `features` set introduced in Phase 1 is validated here.
-- Keep error messages actionable — they're the first thing a new-host author sees.
+There is no hostname/profile/system validation anymore (the old `lib/hosts.nix`
+registry was removed in favour of the reference "host owns everything" model). The
+model assumes a single global user; a host needing a different username would need
+per-host identity reintroduced.

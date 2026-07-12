@@ -35,48 +35,56 @@
     let
       lib = nixpkgs.lib;
 
-      # Machine registry: hosts/ entries, validated and enriched by lib/hosts.nix
-      hostConfig = import ./lib/hosts.nix { hostsPath = ./hosts; };
-      inherit (hostConfig) validatedConfigsChecked;
+      # Global identity — the single user across all hosts. Threaded to every
+      # module as `userConfig` via specialArgs (see lib/mk-system.nix). Each host
+      # owns the rest of its config in hosts/<name>/.
+      identity = {
+        username = "kod_admin";
+        fullName = "hahunavth";
+        githubUsername = "hahunavth";
+        email = "vuthanhha.2001@gmail.com"; # personal (git default)
+        workEmail = "vuthanhha@kodnet.co.jp"; # used under KOD folders (see git.nix)
+        signingKey = "";
+      };
 
-      # Partition hosts by platform (userConfig.system, e.g. aarch64-darwin).
-      isDarwinHost = h: lib.hasSuffix "darwin" h.system;
-      darwinHosts = builtins.filter isDarwinHost validatedConfigsChecked;
-      nixosHosts = builtins.filter (h: !isDarwinHost h) validatedConfigsChecked;
-
-      # Darwin/NixOS builders (shared home-manager wiring lives in lib/mk-home.nix).
-      inherit (import ./lib/mk-system.nix { inherit inputs; }) mkDarwin mkNixos;
+      # Darwin/NixOS builders. Each takes a host directory (hosts/<name>/).
+      inherit (import ./lib/mk-system.nix { inherit inputs identity; }) mkDarwin mkNixos;
 
       # devShell / formatter for both the Mac and the Linux VM. Pick pkgs from
       # the matching nixpkgs per system.
       forAllSystems =
         f:
-        lib.genAttrs [ "aarch64-darwin" "aarch64-linux" ] (
-          system:
-          f (
-            if lib.hasSuffix "linux" system then
-              nixpkgs-linux.legacyPackages.${system}
-            else
-              nixpkgs.legacyPackages.${system}
-          )
-        );
+        lib.genAttrs
+          [
+            "aarch64-darwin"
+            "aarch64-linux"
+            "x86_64-linux"
+          ]
+          (
+            system:
+            f (
+              if lib.hasSuffix "linux" system then
+                # allowUnfree so the packages/checks outputs can evaluate unfree
+                # Linux apps (e.g. pkgs/claude-desktop). darwin sets the same in
+                # modules/darwin/configuration.nix.
+                import nixpkgs-linux {
+                  inherit system;
+                  config.allowUnfree = true;
+                }
+              else
+                nixpkgs.legacyPackages.${system}
+            )
+          );
     in
     {
-      # macOS hosts: darwin-rebuild selects by hostname.
-      darwinConfigurations = builtins.listToAttrs (
-        builtins.map (userConfig: {
-          name = userConfig.hostname;
-          value = mkDarwin userConfig;
-        }) darwinHosts
-      );
+      # Explicit host list. The attr name is the hostname (darwin-rebuild /
+      # nixos-rebuild select by it); the value is that host's directory under hosts/.
+      darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/work;
 
-      # Linux (NixOS) hosts: nixos-rebuild selects by hostname.
-      nixosConfigurations = builtins.listToAttrs (
-        builtins.map (userConfig: {
-          name = userConfig.hostname;
-          value = mkNixos userConfig;
-        }) nixosHosts
-      );
+      nixosConfigurations = {
+        nixos = mkNixos ./hosts/nixos;
+        nixos-desktop = mkNixos ./hosts/nixos-desktop;
+      };
 
       # Custom packages (pkgs/), exported per system. Build one with
       # `nix build .#raycast-beta`.

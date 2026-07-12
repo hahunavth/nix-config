@@ -43,7 +43,7 @@ ssh:
 1. Uncomment the matching `sops.secrets."…"` entries in
    `modules/shared/programs/secrets.nix`.
 2. Import the module in `modules/shared/default.nix` (add `./programs/secrets.nix`).
-3. Set `features.secrets = true;` in the host's `hosts/<name>.nix`.
+3. Set `hn.secrets.enable = true;` in the host's `hosts/<name>/home.nix`.
 4. `git add -A` (the encrypted `secrets.yaml` + `.sops.yaml`) and rebuild.
 
 On activation sops-nix decrypts each secret to its declared `path` (e.g.

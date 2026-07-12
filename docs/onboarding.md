@@ -19,8 +19,8 @@ git clone <repo-url> /etc/nix-darwin
 ```
 
 `darwin-rebuild` auto-selects the `darwinConfigurations` entry matching the
-machine's hostname. Adding a new machine = a new file under `hosts/` plus an
-entry in `hosts/default.nix`; `flake.nix` picks it up automatically.
+machine's hostname. Adding a new machine = a new `hosts/<name>/` directory (it owns
+its config) plus one line in `flake.nix` — see [runbooks/add-a-host.md](runbooks/add-a-host.md).
 
 ## Daily commands
 

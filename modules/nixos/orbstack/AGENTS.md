@@ -14,8 +14,10 @@ user, hostname, timezone, `system.stateVersion = "25.11"`, and the
   `/etc/nixos/*`, re-copy them here and `git diff` to review the change.
 - **sshd stays disabled** (`orbstack.nix`) — OrbStack provides SSH itself
   (`orb -m nixos`, `ssh nixos@orb`). Do **not** add `services.openssh.enable`.
-- Hand-maintained NixOS config for this host lives one level up in
-  [`../configuration.nix`](../configuration.nix) — put our changes there, not here.
+- This guest config is wired into the `nixos` host by
+  [`../hosts/nixos/default.nix`](../hosts/nixos/default.nix). The shared,
+  hand-maintained NixOS base is [`../configuration.nix`](../configuration.nix) —
+  put cross-host changes there, `nixos`-only changes in `../hosts/nixos/`.
 - Login shell is set via `users.defaultUserShell` (the user has
   `useDefaultShell`); don't set it per-user here.
 

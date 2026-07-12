@@ -1,29 +1,25 @@
 # nix-darwin configuration
 
-macOS system configuration managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager).
-Structure follows [mlgruby/dotfile-nix](https://github.com/mlgruby/dotfile-nix): a machine registry
-(`hosts/`) plus profile-composed package lists (common base + work/personal overrides).
+macOS + NixOS system configuration managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin)
+and [home-manager](https://github.com/nix-community/home-manager). Each machine **owns its config**
+under `hosts/<name>/`, composing reusable layers (`modules/{shared,darwin,nixos}`).
 
 ## Architecture
 
-Host entries are validated into a `userConfig` list, which the flake partitions by
-platform: `*-darwin` hosts become `darwinConfigurations`, `*-linux` hosts become
-`nixosConfigurations`. Both share the same home-manager user environment.
+`flake.nix` defines the global identity (one user) and lists each host, mapping it to
+its directory. A host's `default.nix` (system) + `home.nix` (home) own everything
+machine-specific and pull in the shared + platform layers.
 
 ```mermaid
 flowchart LR
-  subgraph Registry
-    H[hosts/*.nix] --> V[lib/hosts.nix<br/>validate + enrich]
-  end
-  V -->|userConfig| F[flake.nix]
-  F -->|*-darwin| D[darwinConfigurations]
-  F -->|*-linux| N[nixosConfigurations]
-  D --> DS[modules/darwin<br/>system]
-  N --> NS[modules/nixos<br/>system]
-  D --> HM[modules/shared<br/>shared home env]
-  N --> HM
-  DS --> BREW[modules/darwin/homebrew<br/>profile lists]
-  HM --> MISE[mise toolchains]
+  F[flake.nix<br/>identity + host list] --> D["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/work"]
+  F --> N["nixosConfigurations.&lt;name&gt;<br/>= mkNixos ./hosts/&lt;name&gt;"]
+  D --> HW[hosts/&lt;name&gt;/<br/>default.nix + home.nix<br/>OWNS its config]
+  N --> HW
+  HW --> SH[modules/shared<br/>home core]
+  HW --> PL[modules/darwin · modules/nixos<br/>platform layers]
+  PL --> BREW[modules/darwin/homebrew base]
+  SH --> MISE[mise toolchains]
 ```
 
 ### Where does X go?
@@ -31,12 +27,13 @@ flowchart LR
 ```mermaid
 flowchart TD
   Q{What am I adding?}
-  Q -->|New machine| M[hosts/&lt;name&gt;.nix + register in hosts/default.nix]
-  Q -->|GUI app| G[cask in modules/darwin/homebrew/casks/*.nix<br/>or extraCasks in a profile]
+  Q -->|New machine| M[hosts/&lt;name&gt;/ default.nix + home.nix, then list it in flake.nix]
+  Q -->|GUI app| G[cask base in modules/darwin/homebrew/casks/*.nix<br/>or homebrew.casks in hosts/&lt;name&gt;/default.nix]
   Q -->|CLI tool| C[modules/shared/packages/*.nix]
   Q -->|Shell alias| A[modules/shared/aliases/*.nix]
   Q -->|Program config| P[modules/shared/programs/&lt;program&gt;.nix]
-  Q -->|System setting| S[a modules/darwin/ module, or CustomUserPreferences]
+  Q -->|Feature toggle| FT[hn.* in hosts/&lt;name&gt;/home.nix]
+  Q -->|System setting| S[a modules/darwin/ module, or hosts/&lt;name&gt;/default.nix]
   Q -->|Language runtime| R[mise globalConfig or per-project .mise.toml]
   Q -->|Secret / key| K[secrets/*.sops.yaml via sops-nix]
 ```
@@ -45,33 +42,28 @@ flowchart TD
 
 ```
 .
-├── flake.nix                      # inputs + darwin/nixosConfigurations, packages, checks, devShells, apps, formatter
-├── hosts/                         # LAYER 1 · DATA — one file per machine
-│   ├── default.nix                # registry: common + host list
-│   ├── common.nix                 # shared identity
-│   ├── work.nix                   # KOD work Mac
-│   └── nixos.nix                  # OrbStack dev VM
-├── hosts.example.nix              # host template
-├── lib/                           # LAYER 2 · LOGIC (pure)
-│   ├── hosts.nix                  # validation & enrichment (userConfig)
-│   ├── mk-system.nix              # mkDarwin/mkNixos builders
-│   └── mk-home.nix                # shared home-manager wiring
-├── modules/                       # LAYER 3 · BUILDING BLOCKS (by scope)
+├── flake.nix                      # global identity + explicit host list; packages/checks/devShells/apps/formatter
+├── hosts/                         # EACH MACHINE OWNS ITS CONFIG (one dir per host)
+│   ├── work/                      # work Mac (KOD-ADMINs-MacBook-Pro)
+│   │   ├── default.nix            #   system: hostPlatform, hostname, its homebrew.casks
+│   │   └── home.nix               #   home: its hn.* toggles + host-only user config
+│   ├── nixos/                     # OrbStack VM (default.nix imports orbstack; home.nix)
+│   └── nixos-desktop/             # GUI VM (default.nix + home.nix + hardware-configuration.nix)
+├── lib/                           # the builders (pure)
+│   ├── mk-system.nix              # mkDarwin/mkNixos: hostPath -> platform + host + home
+│   └── mk-home.nix                # shared home-manager wiring + per-host home.nix
+├── modules/                       # REUSABLE LAYERS a host imports
 │   ├── shared/                    # cross-platform home-manager ("shared core")
-│   │   ├── default.nix            # shared module imports
-│   │   ├── features.nix           # hn.* feature registry (per-host toggles)
-│   │   ├── files.nix              # static dotfiles (home.file / xdg.configFile)
+│   │   ├── default.nix  features.nix  files.nix
 │   │   ├── programs/              # per-program: git, ssh, zsh, mise, atlassian-*, ...
-│   │   ├── packages/              # categorized CLI packages
-│   │   ├── aliases/               # shell aliases split by domain
-│   │   └── scripts/               # shell scripts installed via home-manager
-│   ├── darwin/                    # macOS SYSTEM (nix-darwin)
-│   │   ├── default.nix            # system entry point
-│   │   ├── configuration.nix nix-settings.nix misc-system.nix security.nix …
-│   │   ├── homebrew/              # nix-homebrew wiring + taps/brews/casks + profiles
-│   │   └── home/                  # macOS-only home modules (default-browser, hammerspoon)
-│   └── nixos/                     # Linux SYSTEM (NixOS)
+│   │   ├── packages/  aliases/  scripts/
+│   ├── darwin/                    # macOS platform layer (nix-darwin)
+│   │   ├── default.nix  configuration.nix  nix-settings.nix  security.nix  …
+│   │   ├── homebrew/              # nix-homebrew wiring + shared taps/brews/casks base
+│   │   └── home/                  # macOS-only home modules (default-browser, hammerspoon, conda)
+│   └── nixos/                     # NixOS platform layer
 │       ├── default.nix  configuration.nix
+│       ├── desktop/               # reusable GNOME + VM guest-tools layer
 │       ├── orbstack/              # OrbStack-generated guest config (do NOT edit)
 │       └── home/                  # linux-only home modules
 ├── pkgs/                          # custom packages, exported as flake packages + checks
@@ -98,15 +90,14 @@ Note: flakes only see files tracked by git — after adding new files, run
 
 ## Adding things
 
-- **A machine**: add `hosts/<name>.nix` and register it in `hosts/default.nix`
-  (see [docs/runbooks/add-a-host.md](docs/runbooks/add-a-host.md)).
+- **A machine**: create `hosts/<name>/{default.nix,home.nix}` and list it in
+  `flake.nix` (see [docs/runbooks/add-a-host.md](docs/runbooks/add-a-host.md)).
 - **A GUI app**: add its cask to `modules/darwin/homebrew/casks/*.nix` (all
-  profiles) or `extraCasks` in `modules/darwin/homebrew/profiles/<profile>.nix` (one profile).
+  hosts) or `homebrew.casks` in `hosts/<name>/default.nix` (one host).
 - **A CLI tool**: add to `modules/shared/packages/*.nix`.
 - **An alias**: add to `modules/shared/aliases/*.nix`.
-- **A per-host feature toggle**: add it to `modules/shared/features.nix`
-  (`hn.*`) and gate the module with `lib.mkIf`; set it per machine via
-  `features = { … }` in `hosts/<name>.nix`.
+- **A feature toggle for one host**: enable it in `hosts/<name>/home.nix`
+  (`hn.<feature>.enable = true;`); options are declared in `modules/shared/features.nix`.
 - **A dev shell**: add `shells/<name>.nix` and wire it in `flake.nix` devShells.
 
 ## Checks & formatting

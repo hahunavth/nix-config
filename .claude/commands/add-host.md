@@ -1,10 +1,12 @@
-Add a new machine to the registry. Follow docs/runbooks/add-a-host.md:
+Add a new machine. Each host OWNS its config under hosts/<name>/. Follow
+docs/runbooks/add-a-host.md (or add-nixos-host.md for NixOS):
 
-1. Create `hosts/<name>.nix` with `username`, `hostname` (unique, [a-zA-Z0-9-]),
-   `profile` (personal|work), optional `system` (default aarch64-darwin) and
-   optional `features = { … }` (see modules/shared/features.nix).
-2. Register it in `hosts/default.nix`.
+1. Create `hosts/<name>/default.nix` (system: `nixpkgs.hostPlatform`,
+   `networking.hostName`, its casks/hardware/imports) and `hosts/<name>/home.nix`
+   (home: `hn.*` feature toggles + host-only user config).
+2. List it in `flake.nix` — the attr name is the hostname:
+   `darwinConfigurations."<hostname>" = mkDarwin ./hosts/<name>;` (or `mkNixos`).
 3. `git add -A`, then verify it evaluates + builds (see /build).
 
-`lib/hosts.nix` validates the entry; a `*-linux` system routes it to
-nixosConfigurations instead of darwinConfigurations.
+Identity (username, emails) is global in `flake.nix` (`identity`) — hosts don't set
+it. There's no validation registry; the host's `default.nix` sets its own platform.

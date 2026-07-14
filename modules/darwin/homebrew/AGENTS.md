@@ -21,5 +21,5 @@ casks/system.nix      # menu-bar / system utilities (base)
   `hosts/<name>/default.nix`; `homebrew.casks` is a list option
   so it merges with the base here. (This replaced the old work/personal profile
   overrides — a host now owns its own extras.)
-- **GUI apps → casks; CLI tools → prefer nix** (`modules/shared/packages/`).
+- **GUI apps → casks; CLI tools → prefer nix** (`modules/home-shared/packages/`).
   Only use a `brew` when the tool isn't viable via nixpkgs.

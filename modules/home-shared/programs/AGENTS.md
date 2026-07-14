@@ -1,7 +1,7 @@
-# modules/shared/programs — AGENTS.md
+# modules/home-shared/programs — AGENTS.md
 
 Per-program user configuration in the cross-platform "shared core". Each file is
-imported by [`../default.nix`](../default.nix) (`modules/shared/default.nix`), which
+imported by [`../default.nix`](../default.nix) (`modules/home-shared/default.nix`), which
 is in turn pulled in by both platform home entries (`modules/darwin/home`,
 `modules/nixos/home`). Platform-specific bits are guarded with `pkgs.stdenv.isDarwin`.
 

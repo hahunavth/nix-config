@@ -34,7 +34,7 @@ lib/                            # the builders (pure)
   mk-system.nix                 #   { inputs, identity } -> mkDarwin/mkNixos, each taking a host dir
   mk-home.nix                   #   shared home-manager wiring + the host's own home.nix
 modules/                        # REUSABLE LAYERS a host imports
-  shared/                       #   cross-platform home-manager ("shared core", runs on every host)
+  home-shared/                  #   cross-platform home-manager ("shared core", runs on every host)
     default.nix                 #     shared module imports
     features.nix                #     hn.* FEATURE OPTIONS (declared here; hosts enable them; see below)
     files.nix                   #     static dotfiles (home.file / xdg.configFile)
@@ -69,7 +69,7 @@ host by hostname).
 
 ### Feature flags (`hn.*`)
 
-Optional user modules are gated by options declared in `modules/shared/features.nix`.
+Optional user modules are gated by options declared in `modules/home-shared/features.nix`.
 **Each host enables what it wants in its own `hosts/<name>/home.nix`:**
 
 ```nix
@@ -141,7 +141,7 @@ Gotchas specific to the OrbStack VM:
 - **GUI apps go through Homebrew casks** (not nixpkgs) — add them to
   `modules/darwin/homebrew/casks/*.nix` (all hosts) or `homebrew.casks` in
   `hosts/<name>/default.nix` (one host). CLI tools go in
-  `modules/shared/packages/*.nix`. `homebrew.onActivation.cleanup = "zap"` removes anything
+  `modules/home-shared/packages/*.nix`. `homebrew.onActivation.cleanup = "zap"` removes anything
   not listed. The Homebrew installation itself is managed by nix-homebrew.
 - **User identity (name/emails) lives in `hosts/`**, threaded everywhere as `userConfig` — don't
   hardcode usernames/emails in modules.
@@ -176,7 +176,7 @@ Gotchas specific to the OrbStack VM:
 
 ## Dev toolchains
 
-Language runtimes are managed by **mise** (`modules/shared/programs/mise.nix`), not global nix packages.
+Language runtimes are managed by **mise** (`modules/home-shared/programs/mise.nix`), not global nix packages.
 Global defaults live in `programs.mise.globalConfig`; per-project versions go in each repo's
 `.mise.toml`. Versions resolve at `mise install` time (network), not at nix build time.
 
@@ -186,7 +186,7 @@ Global defaults live in `programs.mise.globalConfig`; per-project versions go in
   home-manager-managed `.zshrc`, add conda's init to `programs.zsh` rather than running `conda init`.
 
 **Atlassian Plugin SDK** — both versions are pinned via nix (`pkgs/atlassian-plugin-sdk`,
-instantiated per version in `modules/shared/programs/atlassian-sdk.nix`) and exposed at stable paths. Homebrew is NOT
+instantiated per version in `modules/home-shared/programs/atlassian-sdk.nix`) and exposed at stable paths. Homebrew is NOT
 used — its tap has broken formula class names and the `atlas-*` binaries collide on link.
 - **8.2.7** at `~/.local/share/atlassian-plugin-sdk/8.2.7/bin` (pair with Java 8).
 - **9.1.1** at `~/.local/share/atlassian-plugin-sdk/9.1.1/bin` (pair with Java 17).
@@ -215,7 +215,7 @@ point Maven's local repo at a writable path (e.g.
 
 ### Branch-based auto-switching (Atlassian plugin repos)
 
-Two commands (from `modules/shared/programs/atlassian-mise.nix`) switch the Java + SDK stack by git
+Two commands (from `modules/home-shared/programs/atlassian-mise.nix`) switch the Java + SDK stack by git
 branch, per project:
 
 - `atlas-mise-enable` — run once inside an Atlassian plugin repo. Installs
@@ -224,7 +224,7 @@ branch, per project:
 - `atlas-mise-gen` — regenerates `.mise.local.toml` from the current branch (called by the hooks).
 
 Branch rule: name contains **`wiki_9`** → Java 17 + SDK 9.1.1; otherwise → Java 8 + SDK 8.2.7. Edit
-`NEW_STACK_PATTERN` in `modules/shared/scripts/atlassian-mise/atlas-mise-gen.sh` to change it. The generated
+`NEW_STACK_PATTERN` in `modules/home-shared/scripts/atlassian-mise/atlas-mise-gen.sh` to change it. The generated
 `.mise.local.toml` is a gitignored local override; the hook calls `atlas-mise-gen` off PATH, so run
 `git` from a shell that has the home-manager profile.
 
@@ -235,11 +235,11 @@ Branch rule: name contains **`wiki_9`** → Java 17 + SDK 9.1.1; otherwise → J
   list it in `flake.nix` (attr name = hostname). See docs/runbooks/add-a-host.md.
 - **New system module**: add under `modules/darwin/` (or `modules/nixos/`) and import it in that
   platform's `default.nix` — OR, if host-specific, put it in `hosts/<name>/default.nix`.
-- **New shared home module**: add under `modules/shared/programs/` and import it in
-  `modules/shared/default.nix`. macOS-only home module → `modules/darwin/home/` (imported by its
+- **New shared home module**: add under `modules/home-shared/programs/` and import it in
+  `modules/home-shared/default.nix`. macOS-only home module → `modules/darwin/home/` (imported by its
   `default.nix`).
-- **New alias group**: add `modules/shared/aliases/<domain>.nix` and merge it in `aliases/default.nix`.
+- **New alias group**: add `modules/home-shared/aliases/<domain>.nix` and merge it in `aliases/default.nix`.
 - **New macOS package**: shared → `modules/darwin/homebrew/{taps,brews,casks}`; host-only →
   `homebrew.casks`/`brews` in `hosts/<name>/default.nix`.
-- **New feature**: declare the option in `modules/shared/features.nix` (`hn.*`), gate the module with
+- **New feature**: declare the option in `modules/home-shared/features.nix` (`hn.*`), gate the module with
   `lib.mkIf config.hn.<f>.enable`; enable it per host in `hosts/<name>/home.nix`.

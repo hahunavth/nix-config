@@ -14,7 +14,7 @@
   (e.g. `hn.atlassian.enable = true;`) and any host-only user packages/apps, layered
   on the shared core.
 
-The reusable layers (`modules/{shared,darwin,nixos}`) and the platform base are
+The reusable layers (`modules/{home-shared,darwin,nixos}`) and the platform base are
 added by the builder — the host only declares its own extras + what it imports.
 
 ## Register a host

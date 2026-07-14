@@ -1,7 +1,7 @@
 # Refactor & Enhancement Plan
 
 > **Note:** after these phases the repo layout was reorganized into three layers —
-> `hosts/` (data), `lib/` (logic), `modules/{shared,darwin,nixos}` (building blocks).
+> `hosts/` (data), `lib/` (logic), `modules/{home-shared,darwin,nixos}` (building blocks).
 > Paths in this historical document reflect the *pre-reorganization* structure
 > (`darwin/`, `home-manager/`, …). See [README.md](../README.md) / [AGENTS.md](../AGENTS.md)
 > for the current layout.

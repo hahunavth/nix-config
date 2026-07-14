@@ -1,7 +1,7 @@
 # Runbook: add a host
 
 A host is a directory `hosts/<name>/` that **owns its config**, plus one line in
-`flake.nix`. The reusable layers (`modules/{shared,darwin,nixos}`) and the shared
+`flake.nix`. The reusable layers (`modules/{home-shared,darwin,nixos}`) and the shared
 home core are added by the builder.
 
 ## 1. Create the host directory
@@ -27,7 +27,7 @@ home core are added by the builder.
 ```nix
 { ... }:
 {
-  hn.atlassian.enable = true; # opt into features declared in modules/shared/features.nix
+  hn.atlassian.enable = true; # opt into features declared in modules/home-shared/features.nix
 }
 ```
 

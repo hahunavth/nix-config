@@ -16,7 +16,7 @@ flowchart LR
   F --> N["nixosConfigurations.&lt;name&gt;<br/>= mkNixos ./hosts/&lt;name&gt;"]
   D --> HW[hosts/&lt;name&gt;/<br/>default.nix + home.nix<br/>OWNS its config]
   N --> HW
-  HW --> SH[modules/shared<br/>home core]
+  HW --> SH[modules/home-shared<br/>home core]
   HW --> PL[modules/darwin · modules/nixos<br/>platform layers]
   PL --> BREW[modules/darwin/homebrew base]
   SH --> MISE[mise toolchains]
@@ -29,9 +29,9 @@ flowchart TD
   Q{What am I adding?}
   Q -->|New machine| M[hosts/&lt;name&gt;/ default.nix + home.nix, then list it in flake.nix]
   Q -->|GUI app| G[cask base in modules/darwin/homebrew/casks/*.nix<br/>or homebrew.casks in hosts/&lt;name&gt;/default.nix]
-  Q -->|CLI tool| C[modules/shared/packages/*.nix]
-  Q -->|Shell alias| A[modules/shared/aliases/*.nix]
-  Q -->|Program config| P[modules/shared/programs/&lt;program&gt;.nix]
+  Q -->|CLI tool| C[modules/home-shared/packages/*.nix]
+  Q -->|Shell alias| A[modules/home-shared/aliases/*.nix]
+  Q -->|Program config| P[modules/home-shared/programs/&lt;program&gt;.nix]
   Q -->|Feature toggle| FT[hn.* in hosts/&lt;name&gt;/home.nix]
   Q -->|System setting| S[a modules/darwin/ module, or hosts/&lt;name&gt;/default.nix]
   Q -->|Language runtime| R[mise globalConfig or per-project .mise.toml]
@@ -53,7 +53,7 @@ flowchart TD
 │   ├── mk-system.nix              # mkDarwin/mkNixos: hostPath -> platform + host + home
 │   └── mk-home.nix                # shared home-manager wiring + per-host home.nix
 ├── modules/                       # REUSABLE LAYERS a host imports
-│   ├── shared/                    # cross-platform home-manager ("shared core")
+│   ├── home-shared/                    # cross-platform home-manager ("shared core")
 │   │   ├── default.nix  features.nix  files.nix
 │   │   ├── programs/              # per-program: git, ssh, zsh, mise, atlassian-*, ...
 │   │   ├── packages/  aliases/  scripts/
@@ -94,10 +94,10 @@ Note: flakes only see files tracked by git — after adding new files, run
   `flake.nix` (see [docs/runbooks/add-a-host.md](docs/runbooks/add-a-host.md)).
 - **A GUI app**: add its cask to `modules/darwin/homebrew/casks/*.nix` (all
   hosts) or `homebrew.casks` in `hosts/<name>/default.nix` (one host).
-- **A CLI tool**: add to `modules/shared/packages/*.nix`.
-- **An alias**: add to `modules/shared/aliases/*.nix`.
+- **A CLI tool**: add to `modules/home-shared/packages/*.nix`.
+- **An alias**: add to `modules/home-shared/aliases/*.nix`.
 - **A feature toggle for one host**: enable it in `hosts/<name>/home.nix`
-  (`hn.<feature>.enable = true;`); options are declared in `modules/shared/features.nix`.
+  (`hn.<feature>.enable = true;`); options are declared in `modules/home-shared/features.nix`.
 - **A dev shell**: add `shells/<name>.nix` and wire it in `flake.nix` devShells.
 
 ## Checks & formatting

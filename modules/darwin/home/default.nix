@@ -4,7 +4,7 @@
 
 {
   imports = [
-    ../../shared # cross-platform home (modules/shared)
+    ../../home-shared # cross-platform home (modules/home-shared)
 
     # macOS-only modules
     ./default-browser.nix # per-user LaunchServices default browser

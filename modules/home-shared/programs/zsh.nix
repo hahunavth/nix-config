@@ -13,7 +13,7 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    # Aliases live in modules/shared/aliases/, split by domain.
+    # Aliases live in modules/home-shared/aliases/, split by domain.
     # win-tunnel forwards are gated behind the winTunnel feature.
     shellAliases = import ../aliases {
       inherit lib pkgs;

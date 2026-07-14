@@ -4,6 +4,6 @@
 
 {
   imports = [
-    ../../shared # cross-platform home (modules/shared)
+    ../../home-shared # cross-platform home (modules/home-shared)
   ];
 }

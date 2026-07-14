@@ -14,7 +14,7 @@ Add the cask to the right list under `modules/darwin/homebrew/casks/`:
 
 ## CLI tool
 
-Add to `modules/shared/packages/development.nix` or `system.nix`. Prefer nix
+Add to `modules/home-shared/packages/development.nix` or `system.nix`. Prefer nix
 over a Homebrew `brew` unless the tool isn't viable in nixpkgs.
 
 Check availability / options with the `nixos` MCP server rather than guessing an
@@ -23,7 +23,7 @@ attribute name.
 ## Language runtime (node, java, python, …)
 
 Not a package — use **mise**. Global default: `programs.mise.globalConfig` in
-`modules/shared/programs/mise.nix`. Per-project: a `.mise.toml` in that repo. Run
+`modules/home-shared/programs/mise.nix`. Per-project: a `.mise.toml` in that repo. Run
 `mise install` after editing.
 
 ## Custom / pinned package

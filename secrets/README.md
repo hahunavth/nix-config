@@ -9,6 +9,6 @@ Age-encrypted secrets managed by [sops-nix](https://github.com/Mic92/sops-nix).
   never in git.
 
 This is a scaffold: nothing is wired to real secrets yet. The consuming module
-[`../modules/shared/programs/secrets.nix`](../modules/shared/programs/secrets.nix)
+[`../modules/home-shared/programs/secrets.nix`](../modules/home-shared/programs/secrets.nix)
 stays inert until a host sets `features.secrets = true`. Full steps:
 [`../docs/runbooks/secrets.md`](../docs/runbooks/secrets.md).

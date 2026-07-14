@@ -13,7 +13,7 @@ atlassian-plugin-sdk/default.nix  # both SDK versions, fetchurl-pinned
   version, update the URL, then update the hash — get the new hash from the build
   error's "got:" line, or `nix store prefetch-file <url>`.
 - The SDK version pins live in [`./default.nix`](./default.nix), consumed by
-  [`../modules/shared/programs/atlassian-sdk.nix`](../modules/shared/programs/atlassian-sdk.nix),
+  [`../modules/home-shared/programs/atlassian-sdk.nix`](../modules/home-shared/programs/atlassian-sdk.nix),
   which exposes them at stable `~/.local/share/...` paths.
 - These are exported as flake `packages` and built by the `checks` output, so
   `nix flake check` (and CI) catches a rotted URL/hash instead of only at rebuild.

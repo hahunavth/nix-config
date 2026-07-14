@@ -17,7 +17,7 @@ flowchart TD
 
   HW1 --> PD[modules/darwin<br/>platform base + homebrew]
   HW2 --> PN[modules/nixos<br/>platform base + orbstack/desktop]
-  HW1 --> HMS[modules/shared<br/>shared home core]
+  HW1 --> HMS[modules/home-shared<br/>shared home core]
   HW2 --> HMS
   HMS --> MISE[mise-managed toolchains]
 ```
@@ -38,7 +38,7 @@ flowchart TD
      the Homebrew base).
    - Linux platform: [`../modules/nixos`](../modules/nixos) (base + `orbstack/`,
      `desktop/` a host can import).
-   - User env: [`../modules/shared`](../modules/shared), on every host; each platform's
+   - User env: [`../modules/home-shared`](../modules/home-shared), on every host; each platform's
      `home/` adds OS-only extras. Runtimes come from **mise**, not nix.
 
 ## Why this shape

@@ -1,9 +1,9 @@
-# modules/shared — AGENTS.md
+# modules/home-shared — AGENTS.md
 
 The **shared core**: home-manager configuration that runs on *every* host (macOS
 and the NixOS VM). `default.nix` imports everything here; the platform home
 entries ([`../darwin/home`](../darwin/home), [`../nixos/home`](../nixos/home)) pull
-`../shared` in and add their platform-only extras.
+`../home-shared` in and add their platform-only extras.
 
 ```
 default.nix     # imports features + files + packages/ + programs/

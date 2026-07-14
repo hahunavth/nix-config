@@ -3,7 +3,7 @@
 Replaces "copy the SSH key files from the old machine" with a single age key.
 
 Status: **scaffolded, not yet enabled.** The wiring exists (`sops-nix` input, the
-`sops` home-manager module, `modules/shared/programs/secrets.nix`, `secrets/.sops.yaml`)
+`sops` home-manager module, `modules/home-shared/programs/secrets.nix`, `secrets/.sops.yaml`)
 but `features.secrets` is off everywhere until you complete the steps below. This
 is the one phase that needs a human — it requires your private key and your real
 secret material.
@@ -41,8 +41,8 @@ ssh:
 ## Enable it
 
 1. Uncomment the matching `sops.secrets."…"` entries in
-   `modules/shared/programs/secrets.nix`.
-2. Import the module in `modules/shared/default.nix` (add `./programs/secrets.nix`).
+   `modules/home-shared/programs/secrets.nix`.
+2. Import the module in `modules/home-shared/default.nix` (add `./programs/secrets.nix`).
 3. Set `hn.secrets.enable = true;` in the host's `hosts/<name>/home.nix`.
 4. `git add -A` (the encrypted `secrets.yaml` + `.sops.yaml`) and rebuild.
 

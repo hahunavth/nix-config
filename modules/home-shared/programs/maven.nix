@@ -11,5 +11,5 @@
   # NOTE (measured 2026-07): from this machine the default Maven Central CDN
   # (repo.maven.apache.org, Fastly) is FASTER than the Google Cloud mirrors
   # (~347 vs ~200-253 KB/s), so no <mirror> is configured on purpose.
-  home.sessionVariables.MAVEN_OPTS = "-Dmaven.repo.local=${config.home.homeDirectory}/.m2/repository -Dmaven.artifact.threads=16";
+  # home.sessionVariables.MAVEN_OPTS = "-Dmaven.repo.local=${config.home.homeDirectory}/.m2/repository -Dmaven.artifact.threads=16";
 }

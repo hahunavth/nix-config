@@ -10,7 +10,7 @@
         email = userConfig.email;
       };
       init.defaultBranch = "main";
-      pull.rebase = true;
+      # pull.rebase = true;
     };
     # ...but any repo whose path contains a "KOD" folder uses the work identity.
     includes = [

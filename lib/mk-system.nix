@@ -25,7 +25,7 @@ let
   sharedModules = [ sops-nix.homeManagerModules.sops ];
 in
 {
-  # hostPath e.g. ./hosts/work — a directory with default.nix + home.nix.
+  # hostPath e.g. ./hosts/macbook — a directory with default.nix + home.nix.
   mkDarwin =
     hostPath:
     nix-darwin.lib.darwinSystem {

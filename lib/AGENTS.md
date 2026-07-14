@@ -16,7 +16,7 @@ their config in `hosts/<name>/`, and the single user's identity is global in
 ## How a host is built
 
 `flake.nix` lists hosts explicitly, e.g.
-`darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/work;`. The host's
+`darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/macbook;`. The host's
 `default.nix` sets its own `nixpkgs.hostPlatform` (so no `system` arg is passed) and
 `networking.hostName`, and owns its machine-specific config. See
 [`../hosts/AGENTS.md`](../hosts/AGENTS.md).

@@ -4,10 +4,10 @@
 
 ```mermaid
 flowchart TD
-	A[flake.nix<br/>global identity + host list] --> D["darwinConfigurations.&lt;hostname&gt; = mkDarwin ./hosts/work"]
+	A[flake.nix<br/>global identity + host list] --> D["darwinConfigurations.&lt;hostname&gt; = mkDarwin ./hosts/macbook"]
 	A --> E["nixosConfigurations.&lt;name&gt; = mkNixos ./hosts/&lt;name&gt;"]
 
-	D --> W[hosts/work/<br/>default.nix + home.nix<br/>owns casks, hostname, features]
+	D --> W[hosts/macbook/<br/>default.nix + home.nix<br/>owns casks, hostname, features]
 	E --> NX[hosts/&lt;name&gt;/<br/>default.nix + home.nix<br/>owns hardware, desktop, features]
 
 	W --> PD[modules/darwin<br/>macOS platform base]

@@ -12,7 +12,7 @@ machine-specific and pull in the shared + platform layers.
 
 ```mermaid
 flowchart LR
-  F[flake.nix<br/>identity + host list] --> D["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/work"]
+  F[flake.nix<br/>identity + host list] --> D["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/macbook"]
   F --> N["nixosConfigurations.&lt;name&gt;<br/>= mkNixos ./hosts/&lt;name&gt;"]
   D --> HW[hosts/&lt;name&gt;/<br/>default.nix + home.nix<br/>OWNS its config]
   N --> HW

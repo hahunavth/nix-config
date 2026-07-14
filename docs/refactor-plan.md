@@ -160,7 +160,7 @@ Then wire host intent through `userConfig`. Add an optional `features` set in
 `hosts/*.nix`, validated in `lib/hosts.nix`, e.g.:
 
 ```nix
-# hosts/work.nix
+# hosts/macbook.nix
 features = { atlassian = true; hammerspoon = true; };
 ```
 

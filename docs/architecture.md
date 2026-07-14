@@ -7,11 +7,11 @@ How a `darwin-rebuild` / `nixos-rebuild` turns the files in this repo into a sys
 ```mermaid
 flowchart TD
   FLK[flake.nix<br/>global identity + host list]
-  FLK --> DC["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/work"]
+  FLK --> DC["darwinConfigurations.&lt;hostname&gt;<br/>= mkDarwin ./hosts/macbook"]
   FLK --> NC["nixosConfigurations.&lt;name&gt;<br/>= mkNixos ./hosts/&lt;name&gt;"]
 
   subgraph "The host OWNS its config"
-    DC --> HW1[hosts/work/default.nix + home.nix]
+    DC --> HW1[hosts/macbook/default.nix + home.nix]
     NC --> HW2[hosts/&lt;name&gt;/default.nix + home.nix]
   end
 

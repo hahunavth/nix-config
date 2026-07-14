@@ -25,7 +25,7 @@ layers via the **lib/** builders. Identity (the single user) is global in `flake
 ```
 flake.nix                       # global `identity` + explicit host list; packages/checks/devShells/apps/formatter
 hosts/                          # EACH MACHINE OWNS ITS CONFIG (one dir per host)
-  work/                         #   work Mac (config name = hostname KOD-ADMINs-MacBook-Pro)
+  macbook/                      #   work Mac (config name = hostname KOD-ADMINs-MacBook-Pro)
     default.nix                 #     system: nixpkgs.hostPlatform, networking.hostName, its homebrew.casks
     home.nix                    #     home: its hn.* toggles (atlassian, winTunnel) + host-only user config
   nixos/                        #   OrbStack VM: default.nix imports orbstack; home.nix (hn.atlassian)
@@ -73,7 +73,7 @@ Optional user modules are gated by options declared in `modules/home-shared/feat
 **Each host enables what it wants in its own `hosts/<name>/home.nix`:**
 
 ```nix
-# hosts/work/home.nix
+# hosts/macbook/home.nix
 hn.atlassian.enable = true;
 hn.winTunnel.enable = true;
 ```
@@ -106,7 +106,7 @@ nix flake check
 
 ### Multi-platform (macOS + NixOS)
 
-`flake.nix` lists each host explicitly: `darwinConfigurations."<hostname>" = mkDarwin ./hosts/work;`
+`flake.nix` lists each host explicitly: `darwinConfigurations."<hostname>" = mkDarwin ./hosts/macbook;`
 and `nixosConfigurations.<name> = mkNixos ./hosts/<name>;`. The host's `default.nix` sets its own
 `nixpkgs.hostPlatform` (aarch64/x86_64 darwin/linux).
 

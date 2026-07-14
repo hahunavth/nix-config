@@ -79,7 +79,7 @@
     {
       # Explicit host list. The attr name is the hostname (darwin-rebuild /
       # nixos-rebuild select by it); the value is that host's directory under hosts/.
-      darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/work;
+      darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/macbook;
 
       nixosConfigurations = {
         nixos = mkNixos ./hosts/nixos;

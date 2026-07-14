@@ -2,4 +2,5 @@
 .mise.local.toml
 .direnv
 result
+result-*
 tmp

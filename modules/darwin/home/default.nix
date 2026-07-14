@@ -10,5 +10,6 @@
     ./default-browser.nix # per-user LaunchServices default browser
     ./hammerspoon.nix # Lua automation (copy/paste sounds)
     ./conda.nix # miniconda shell init (macOS Homebrew cask)
+    ./login-shell.nix # ~/.zprofile: Homebrew shellenv + OrbStack init
   ];
 }

@@ -44,7 +44,7 @@ flowchart TD
 .
 ├── flake.nix                      # global identity + explicit host list; packages/checks/devShells/apps/formatter
 ├── hosts/                         # EACH MACHINE OWNS ITS CONFIG (one dir per host)
-│   ├── work/                      # work Mac (KOD-ADMINs-MacBook-Pro)
+│   ├── macbook/                   # work Mac (KOD-ADMINs-MacBook-Pro)
 │   │   ├── default.nix            #   system: hostPlatform, hostname, its homebrew.casks
 │   │   └── home.nix               #   home: its hn.* toggles + host-only user config
 │   ├── nixos/                     # OrbStack VM (default.nix imports orbstack; home.nix)

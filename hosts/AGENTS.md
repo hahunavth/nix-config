@@ -6,7 +6,7 @@
 - **`default.nix`** — the host's **system** module. Sets `nixpkgs.hostPlatform`,
   `networking.hostName`, and machine-specific system config; imports the reusable
   platform pieces it wants. Examples:
-  - `work/` — a macOS host: its `homebrew.casks`, `networking.*`.
+  - `macbook/` — a macOS host: its `homebrew.casks`, `networking.*`.
   - `nixos/` — imports `../../modules/nixos/orbstack/configuration.nix`.
   - `nixos-desktop/` — `imports = [ ./hardware-configuration.nix ../../modules/nixos/desktop ]`
     + boot + user + hostname.

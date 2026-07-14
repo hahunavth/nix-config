@@ -30,8 +30,11 @@ in
     inherit taps brews casks;
 
     onActivation = {
-      autoUpdate = true;
-      upgrade = true;
+      # Keep rebuilds offline by default: no `brew update` fetch, no upgrading
+      # already-installed casks/formulae just because a newer version exists
+      # upstream. Run `brew-update` manually when you actually want that.
+      autoUpdate = false;
+      upgrade = false;
       cleanup = "zap"; # removes casks/formulae not listed here on rebuild
       extraFlags = [ "--verbose" ]; # shows real per-cask progress
     };

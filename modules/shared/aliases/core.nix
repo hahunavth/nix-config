@@ -14,4 +14,9 @@ in
       "sudo nixos-rebuild switch --flake /private/etc/nix-darwin";
   # Same, via nh: unprivileged build + a diff of what changed (uses NH_FLAKE)
   rebuild2 = if isDarwin then "nh darwin switch" else "nh os switch";
-}
+} // (
+  # Rebuilds are offline by default for Homebrew (see modules/darwin/homebrew/default.nix:
+  # onActivation.autoUpdate/upgrade = false). Run this when you actually want Homebrew to
+  # fetch fresh formula/cask metadata and upgrade outdated casks/formulae.
+  if isDarwin then { brew-update = "brew update && brew upgrade --greedy"; } else { }
+)

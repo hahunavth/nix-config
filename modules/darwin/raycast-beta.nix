@@ -33,7 +33,7 @@ in
     # terminal running darwin-rebuild needs the "App Management" permission
     # (System Settings → Privacy & Security → App Management).
     if [ -e "/Applications/Raycast Beta.app" ] \
-        && [ "$(stat -f %Su "/Applications/Raycast Beta.app")" != "${userConfig.username}" ]; then
+        && [ "$(/usr/bin/stat -f %Su "/Applications/Raycast Beta.app")" != "${userConfig.username}" ]; then
       if chown -R ${userConfig.username}:staff "/Applications/Raycast Beta.app" 2>/dev/null; then
         echo "fixed Raycast Beta ownership (${userConfig.username})" >&2
       else

@@ -23,4 +23,6 @@
     "teamviewer"
     "zoom"
   ];
+
+  nix.linux-builder.enable = false;
 }

@@ -22,22 +22,25 @@
     # Platform-specific shell init is added by its own module, e.g. conda lives
     # in modules/darwin/home/conda.nix (macOS-only) — this module stays generic.
 
-    # Up/Down search history by what's already typed, via the
-    # zsh-history-substring-search plugin (the behavior oh-my-zsh ships by
-    # default on non-nix machines). PREFIXED=1 limits matches to commands
-    # STARTING with the typed text; remove it to match anywhere in the line.
-    # Key codes cover both normal ("^[[A") and application ("^[OA") modes.
-    historySubstringSearch = {
+    # oh-my-zsh, installed declaratively from nixpkgs (no curl installer).
+    # Its lib/key-bindings.zsh gives prefix-aware Up/Down history search
+    # (up-line-or-beginning-search) out of the box. The prompt stays
+    # starship's: its init runs after omz and overrides the theme.
+    oh-my-zsh = {
       enable = true;
-      searchUpKey = [
-        "^[[A"
-        "^[OA"
-      ];
-      searchDownKey = [
-        "^[[B"
-        "^[OB"
+      plugins = [
+        "git" # g* aliases + git status in completions
+        "z" # jump to frecent dirs: `z <partial-path>`
+        "sudo" # double-tap Esc to prepend sudo
+        "extract" # `extract <archive>` for any format
+        "docker" # docker completions + dk* aliases
+        "npm" # npm completions + aliases
+        "colored-man-pages"
+        "command-not-found"
+      ]
+      ++ lib.optionals pkgs.stdenv.isDarwin [
+        "macos" # ofd (open Finder), cdf, quick-look, ...
       ];
     };
-    localVariables.HISTORY_SUBSTRING_SEARCH_PREFIXED = 1;
   };
 }

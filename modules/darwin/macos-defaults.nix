@@ -5,7 +5,7 @@
   system.defaults.finder = {
     AppleShowAllExtensions = true;
     AppleShowAllFiles = true;
-    CreateDesktop = false;
+    CreateDesktop = true;
     FXEnableExtensionChangeWarning = false;
     ShowPathbar = true;
     ShowStatusBar = true;
@@ -28,6 +28,9 @@
     launchanim = false;
     mru-spaces = false;                # stop auto-reordering Spaces
   };
+
+  # Click wallpaper to reveal desktop ("Always", not only in Stage Manager)
+  system.defaults.WindowManager.EnableStandardClickToShowDesktop = true;
 
   # Control Center / menu bar
   system.defaults.controlcenter = {

@@ -30,7 +30,7 @@
       enable = true;
       plugins = [
         "git" # g* aliases + git status in completions
-        "z" # jump to frecent dirs: `z <partial-path>`
+        # "z" intentionally absent — zoxide (programs/zoxide.nix) provides `z`
         "sudo" # double-tap Esc to prepend sudo
         "extract" # `extract <archive>` for any format
         "docker" # docker completions + dk* aliases

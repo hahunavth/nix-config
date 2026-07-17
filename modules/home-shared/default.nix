@@ -26,6 +26,9 @@
     ./programs/neovim.nix
     ./programs/tmux.nix
     ./programs/direnv.nix
+    ./programs/fzf.nix
+    ./programs/eza.nix
+    ./programs/zoxide.nix
     ./programs/nh.nix
     ./programs/atuin.nix
 

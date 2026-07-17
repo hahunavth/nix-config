@@ -22,17 +22,22 @@
     # Platform-specific shell init is added by its own module, e.g. conda lives
     # in modules/darwin/home/conda.nix (macOS-only) — this module stays generic.
 
-    # Up/Down search history by the already-typed prefix (like oh-my-zsh),
-    # instead of stepping through it one entry at a time. Covers both normal
-    # ("^[[A") and application ("^[OA") cursor-key modes.
-    initContent = ''
-      autoload -U up-line-or-beginning-search down-line-or-beginning-search
-      zle -N up-line-or-beginning-search
-      zle -N down-line-or-beginning-search
-      bindkey "^[[A" up-line-or-beginning-search
-      bindkey "^[OA" up-line-or-beginning-search
-      bindkey "^[[B" down-line-or-beginning-search
-      bindkey "^[OB" down-line-or-beginning-search
-    '';
+    # Up/Down search history by what's already typed, via the
+    # zsh-history-substring-search plugin (the behavior oh-my-zsh ships by
+    # default on non-nix machines). PREFIXED=1 limits matches to commands
+    # STARTING with the typed text; remove it to match anywhere in the line.
+    # Key codes cover both normal ("^[[A") and application ("^[OA") modes.
+    historySubstringSearch = {
+      enable = true;
+      searchUpKey = [
+        "^[[A"
+        "^[OA"
+      ];
+      searchDownKey = [
+        "^[[B"
+        "^[OB"
+      ];
+    };
+    localVariables.HISTORY_SUBSTRING_SEARCH_PREFIXED = 1;
   };
 }

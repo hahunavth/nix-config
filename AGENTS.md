@@ -1,246 +1,133 @@
 # AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for AI agents working in this repository (`CLAUDE.md` just includes this file).
 
-## Repository Overview
+macOS + NixOS system configuration: [nix-darwin](https://github.com/nix-darwin/nix-darwin) +
+[home-manager](https://github.com/nix-community/home-manager), Nix Flakes.
 
-macOS system configuration managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin) and
-[home-manager](https://github.com/nix-community/home-manager), using Nix Flakes. Primarily macOS
-(`aarch64-darwin`, Apple Silicon), but the same flake also builds a headless **NixOS** dev host
-(`aarch64-linux`) — see "Multi-platform" below. Structured to grow to more hosts/users.
+- Host `KOD-ADMINs-MacBook-Pro` — Apple Silicon work Mac, user `kod_admin`
+- Host `nixos` — headless OrbStack dev VM (`aarch64-linux`); host `nixos-desktop` — `x86_64-linux` GNOME VM
+- Repo lives at `/etc/nix-darwin` (user-owned, no sudo to edit); inside the OrbStack VM the same
+  checkout is mounted at `/private/etc/nix-darwin`
 
-- Host (macOS): `KOD-ADMINs-MacBook-Pro`; user `kod_admin`
-- Host (NixOS): `nixos` — a headless OrbStack VM (`aarch64-linux`) for dev, SSH'd into from the Mac
-- Host (NixOS): `nixos-desktop` — an `x86_64-linux` GUI VM (GNOME); built on the VM itself
-- Location: `/etc/nix-darwin` (a shared system path; the directory is owned by the user, so editing
-  needs no sudo). Keep it here rather than a home dir — the machine has multiple accounts (ABC,
-  Vietnamese, Japanese input methods) and is intended for team/multi-machine reuse. Inside the
-  OrbStack VM the same repo is reachable at `/private/etc/nix-darwin` (Mac virtiofs mount).
-
-## Layout
-
-Each **host owns its config** in `hosts/<name>/`, composing the reusable **modules/**
-layers via the **lib/** builders. Identity (the single user) is global in `flake.nix`.
+## Layout — each host OWNS its config
 
 ```
-flake.nix                       # global `identity` + explicit host list; packages/checks/devShells/apps/formatter
-hosts/                          # EACH MACHINE OWNS ITS CONFIG (one dir per host)
-  macbook/                      #   work Mac (config name = hostname KOD-ADMINs-MacBook-Pro)
-    default.nix                 #     system: nixpkgs.hostPlatform, networking.hostName, its homebrew.casks
-    home.nix                    #     home: its hn.* toggles (atlassian, winTunnel) + host-only user config
-  nixos/                        #   OrbStack VM: default.nix imports orbstack; home.nix (hn.atlassian)
-  nixos-desktop/                #   GUI VM: default.nix + home.nix + hardware-configuration.nix
-lib/                            # the builders (pure)
-  mk-system.nix                 #   { inputs, identity } -> mkDarwin/mkNixos, each taking a host dir
-  mk-home.nix                   #   shared home-manager wiring + the host's own home.nix
-modules/                        # REUSABLE LAYERS a host imports
-  home-shared/                  #   cross-platform home-manager ("shared core", runs on every host)
-    default.nix                 #     shared module imports
-    features.nix                #     hn.* FEATURE OPTIONS (declared here; hosts enable them; see below)
-    files.nix                   #     static dotfiles (home.file / xdg.configFile)
-    programs/                   #     per-program: git ssh zsh (+oh-my-zsh) starship neovim tmux direnv
-                                #       fzf eza zoxide nh atuin mise maven atlassian-sdk atlassian-mise
-                                #       secrets (optional ones hn.*-gated)
-    packages/                   #     categorized CLI packages: development.nix, system.nix
-    aliases/                    #     shell aliases by domain (win-tunnel gated on hn.winTunnel)
-    scripts/                    #     shell scripts (atlassian-mise/)
-  darwin/                       #   macOS platform layer (nix-darwin), imported by modules/darwin/default.nix
-    configuration.nix nix-settings.nix misc-system.nix security.nix fonts.nix macos-defaults.nix
-    linux-builder.nix           #     Linux build VM (on by default; a host can disable it)
-    raycast-beta.nix            #     Raycast Beta install activation
-    homebrew/                   #     nix-homebrew wiring (default.nix) + shared taps/brews/casks base
-    home/                       #     macOS-only HOME modules: default-browser, hammerspoon, conda (+ shared core)
-  nixos/                        #   NixOS platform layer
-    configuration.nix           #     shared base for all Linux hosts: flakes/GC/nix-ld/zsh/packages
-    desktop/                    #     reusable GUI layer (GNOME + VM guest tools)
-    orbstack/                   #     OrbStack-GENERATED guest config, copied verbatim — DO NOT hand-edit
-    home/                       #     linux-only HOME modules (+ shared core)
-pkgs/                           # custom packages: raycast-beta, atlassian-plugin-sdk (fetchurl-pinned);
-                                #   default.nix aggregates them for the flake packages/checks outputs
-shells/                         # per-project dev shells (nix develop .#default|atlassian|node|python)
-secrets/                        # sops-nix scaffold (.sops.yaml); inert until a host sets hn.secrets.enable
-treefmt.nix / statix.toml       # `nix fmt` (treefmt) config + statix lint config
-.github/workflows/check.yml     # CI: format, lint, eval all hosts, build darwin packages
-.claude/commands/               # repo slash commands: /build /rebuild /add-host /add-cask
-scripts/bootstrap.sh            # fresh-machine bootstrap; docs/ = human runbooks + architecture
+flake.nix                 # global `identity` + explicit host list (attr name = hostname)
+hosts/<name>/             # per machine: default.nix (hostPlatform, hostName, its casks/system
+                          #   config) + home.nix (its hn.* toggles + host-only home config)
+lib/                      # mkDarwin/mkNixos builders (pure) + shared home-manager wiring
+modules/
+  home-shared/            # cross-platform home core, runs on every host:
+    features.nix          #   hn.* FEATURE OPTIONS (declared here, enabled per host)
+    programs/             #   per-program: git ssh zsh (+oh-my-zsh) starship neovim tmux direnv
+                          #     fzf eza zoxide nh atuin mise maven atlassian-* secrets
+    packages/ aliases/ scripts/ files.nix
+  darwin/                 # macOS platform layer; homebrew/ (nix-homebrew + shared cask base),
+                          #   home/ (macOS-only home modules), linux-builder (on by default)
+  nixos/                  # NixOS platform layer; orbstack/ is GENERATED — do NOT hand-edit
+pkgs/                     # custom packages (raycast-beta, atlassian-plugin-sdk)
+shells/                   # dev shells: nix develop .#default|atlassian|node|python
+secrets/                  # sops-nix scaffold; inert until a host sets hn.secrets.enable
+.claude/commands/         # repo slash commands: /build /rebuild /add-host /add-cask
+docs/                     # human runbooks + architecture
 ```
 
-`nix run .#build-switch` builds + switches the current machine's config (picks the
-host by hostname).
+Nested `AGENTS.md` files document the non-obvious directories (`hosts/`, `lib/`, `pkgs/`,
+`modules/nixos/orbstack/`, `modules/home-shared/programs/` — the Atlassian trio,
+`modules/darwin/homebrew/`). **Read the one next to the files you're editing.**
 
-### Feature flags (`hn.*`)
+## Where does X go?
 
-Optional user modules are gated by options declared in `modules/home-shared/features.nix`.
-**Each host enables what it wants in its own `hosts/<name>/home.nix`:**
+- **GUI app** → Homebrew cask: `modules/darwin/homebrew/casks/*.nix` (all hosts) or
+  `homebrew.casks` in `hosts/<name>/default.nix` (one host). Never nixpkgs for GUI apps.
+- **CLI tool** → nix: `modules/home-shared/packages/*.nix`
+- **Shell alias** → `modules/home-shared/aliases/<domain>.nix`, merged in `aliases/default.nix`
+- **Program config** → `modules/home-shared/programs/<program>.nix`, imported in
+  `modules/home-shared/default.nix`; macOS-only home module → `modules/darwin/home/`
+- **Feature toggle** → declare `hn.*` in `modules/home-shared/features.nix`, gate the module with
+  `lib.mkIf config.hn.<f>.enable`, enable per host in `hosts/<name>/home.nix`
+- **System setting** → a `modules/darwin/` module (shared) or `hosts/<name>/default.nix` (one host);
+  no typed nix-darwin option → `system.defaults.CustomUserPreferences."<domain>"`
+- **Language runtime** → mise (`globalConfig` or per-project `.mise.toml`), NOT nix/homebrew
+- **Secret / key** → `secrets/*.sops.yaml` via sops-nix
+- **New machine** → `hosts/<name>/{default.nix,home.nix}` + list it in `flake.nix`
+  (see docs/runbooks/add-a-host.md)
 
-```nix
-# hosts/macbook/home.nix
-hn.atlassian.enable = true;
-hn.winTunnel.enable = true;
-```
-
-Defaults: `hammerspoon`+`defaultBrowser` default on for macOS (platform); everything
-else (`atlassian`, `winTunnel`, `secrets`, `atuin`) defaults **off** — a host opts in.
-Consuming modules use `lib.mkIf config.hn.<feature>.enable`. `linux-builder` is on by
-default (darwin); a host disables it with `nix.linux-builder.enable = false;` in its
-`default.nix`.
+Feature-flag defaults: `hammerspoon` + `defaultBrowser` on for macOS; `atlassian`, `winTunnel`,
+`secrets`, `atuin` off — a host opts in. `nix.linux-builder` is on by default (darwin);
+a host may disable it.
 
 ## Commands
 
-Build only (no changes, no sudo) — always do this to verify before switching:
+Build only (no changes, no sudo) — **always do this to verify before switching**:
+
 ```bash
 nix build .#darwinConfigurations.KOD-ADMINs-MacBook-Pro.system
 ```
 
-Apply to the system:
+Apply to the system (the `rebuild` zsh alias runs exactly this):
+
 ```bash
 sudo darwin-rebuild switch --flake /etc/nix-darwin
-# after the first switch, the `rebuild` zsh alias runs exactly this
 ```
 
-Dev shell / formatting (for editing this repo):
-```bash
-nix develop      # nixfmt, statix, deadnix, nil
-nix fmt          # format all .nix files
-nix flake check
-```
+Editing this repo: `nix develop` (nixfmt, statix, deadnix, nil), `nix fmt`, `nix flake check`.
 
-### Multi-platform (macOS + NixOS)
-
-`flake.nix` lists each host explicitly: `darwinConfigurations."<hostname>" = mkDarwin ./hosts/macbook;`
-and `nixosConfigurations.<name> = mkNixos ./hosts/<name>;`. The host's `default.nix` sets its own
-`nixpkgs.hostPlatform` (aarch64/x86_64 darwin/linux).
-
-The **NixOS dev host** is a headless OrbStack VM named `nixos` (`aarch64-linux`). It shares all
-portable home-manager modules (git, zsh, mise, neovim, tmux, …); macOS-only pieces (Homebrew,
-hammerspoon, default-browser, `UseKeychain`, `mactop`/`macpm`) are excluded or `isDarwin`-guarded.
-
-```bash
-# Evaluate the NixOS config from the Mac (eval only; building Linux needs the linux-builder):
-nix build .#nixosConfigurations.nixos.config.system.build.toplevel --dry-run
-
-# Apply — run INSIDE the VM (the repo is mounted at /private/etc/nix-darwin via virtiofs).
-# Builds natively (the VM is aarch64-linux); the `rebuild` alias runs exactly this:
-orb -m nixos sudo nixos-rebuild switch --flake /private/etc/nix-darwin#nixos
-```
-
-Gotchas specific to the OrbStack VM:
-- **sshd stays disabled** (`modules/nixos/orbstack/orbstack.nix`) — OrbStack provides SSH itself
-  (`orb -m nixos`, `ssh nixos@orb`). Do not enable `services.openssh`.
-- The `kod_admin` user + hostname + timezone + stateVersion (`25.11`) are owned by the copied
-  OrbStack files; set the login shell via `users.defaultUserShell` (the user has `useDefaultShell`).
-- `modules/nixos/orbstack/` is OrbStack-generated — if OrbStack rewrites `/etc/nixos/*` on the VM,
-  re-copy and diff. Only `modules/nixos/configuration.nix` is hand-maintained.
-- SSH private keys are plain files in the Mac's `~/.ssh` (not managed by nix); for outbound git
-  over SSH from the VM, copy the needed key into the VM's `~/.ssh` too.
+NixOS hosts: evaluate from the Mac with
+`nix build .#nixosConfigurations.nixos.config.system.build.toplevel --dry-run`;
+apply INSIDE the VM: `orb -m nixos sudo nixos-rebuild switch --flake /private/etc/nix-darwin#nixos`.
 
 ## Conventions & gotchas
 
 - **Flakes only see git-tracked files** — `git add -A` new files before building or they're invisible.
-- **`flake.lock` is tracked in git** — builds are pure; do NOT pass `--impure`. Only run
-  `darwin-rebuild` as your user (not via a root shell) so the lock file doesn't become root-owned.
-- **GUI apps go through Homebrew casks** (not nixpkgs) — add them to
-  `modules/darwin/homebrew/casks/*.nix` (all hosts) or `homebrew.casks` in
-  `hosts/<name>/default.nix` (one host). CLI tools go in
-  `modules/home-shared/packages/*.nix`. `homebrew.onActivation.cleanup = "zap"` removes anything
-  not listed. The Homebrew installation itself is managed by nix-homebrew.
-- **User identity (name/emails) lives in `hosts/`**, threaded everywhere as `userConfig` — don't
-  hardcode usernames/emails in modules.
-- **stateVersion is intentionally pinned** (`system.stateVersion = 4`, `home.stateVersion = "26.05"`).
-  Do not "upgrade" these — they record install-time defaults, not the current release.
-- **Verify changes by building** and, for home-manager changes, inspecting the generated files under
-  the built `home-manager-generation` store path (e.g. `.zshrc`, `.config/git/config`).
+- **`flake.lock` is tracked; builds are pure** — never pass `--impure`. Run `darwin-rebuild` as your
+  user (not a root shell) so the lock file doesn't become root-owned.
+- **`homebrew.onActivation.cleanup = "zap"`** — casks/brews not declared in nix get uninstalled on
+  the next switch.
+- **User identity lives in `hosts/`**, threaded as `userConfig` — never hardcode usernames/emails
+  in modules.
+- **stateVersion is intentionally pinned** (`system.stateVersion = 4`, `home.stateVersion = "26.05"`)
+  — these record install-time defaults; do not "upgrade" them.
+- **Verify by building**, and for home-manager changes inspect the generated files in the built
+  `home-manager-generation`/`home-manager-files` store path (e.g. `.zshrc`).
+- OrbStack VM: **sshd stays disabled** (OrbStack provides SSH: `orb -m nixos`, `ssh nixos@orb`);
+  `modules/nixos/orbstack/` is generated — only `modules/nixos/configuration.nix` is hand-maintained.
 - Comments in this repo are in English.
 
 ## macOS specifics
 
-- **Homebrew is managed by nix-homebrew** (`modules/darwin/homebrew/`): the installation itself is
-  declarative (`autoMigrate = true` takes over an existing /opt/homebrew).
-- **First `darwin-rebuild switch` triggers one-time GUI permission prompts** that cannot be granted
-  declaratively — approve them manually:
-  - Arc default browser: a "change default browser to Arc?" confirmation dialog (from
-    `modules/darwin/home/default-browser.nix`, via `defaultbrowser`).
-  - Input Source Pro: needs **Accessibility** permission (System Settings → Privacy & Security).
-  - Possibly an **App Management** prompt (home-manager 26.05 copies GUI apps during activation).
-- **Touch ID for sudo** (`modules/darwin/security.nix`) takes effect after the first switch; that
-  first switch still needs a typed password.
-- **Some settings need a logout/restart** to apply — most `system.defaults`, Dock/Finder changes,
-  and any input-source changes. A rebuild alone may not visibly update them.
-- **Keyboard type (ANSI/ISO/JIS) is NOT a nix setting** — it's per-hardware, set via macOS Keyboard
-  Setup Assistant ("Change Keyboard Type…"). A misdetected type causes the §/± vs `/~ key confusion;
-  fix it there, not with a `hidutil`/`remapTilde` remap (those treat the symptom and reset on reboot).
-- **Input methods**: this machine uses ABC (US) plus Vietnamese (Telex) and Japanese (Kotoeri).
+- **Some `system.defaults` need a logout/restart** (Dock/Finder/WindowManager, input sources) —
+  a rebuild writes the plist but running processes only reread it at login.
+- **First switch triggers one-time GUI permission prompts** (default-browser dialog, Input Source
+  Pro accessibility, App Management) — approve manually; they can't be granted declaratively.
+  Touch ID for sudo works from the second switch on.
+- **Input methods**: ABC + Vietnamese (Telex) + Japanese (Kotoeri) are configured manually.
   Do NOT declare `AppleEnabledInputSources` via `CustomUserPreferences` — it overwrites the whole
   list and would wipe these IMEs.
-- **For macOS settings without a typed nix-darwin option**, use
-  `system.defaults.CustomUserPreferences."<domain>" = { ... }` (maps to `defaults write`).
+- **Keyboard type (ANSI/ISO/JIS) is NOT a nix setting** — fix §/± vs `/~ confusion via macOS
+  Keyboard Setup Assistant, not `hidutil` remaps.
 
 ## Dev toolchains
 
-Language runtimes are managed by **mise** (`modules/home-shared/programs/mise.nix`), not global nix packages.
-Global defaults live in `programs.mise.globalConfig`; per-project versions go in each repo's
-`.mise.toml`. Versions resolve at `mise install` time (network), not at nix build time.
+Runtimes come from **mise** (`modules/home-shared/programs/mise.nix`), not nix: Node LTS + pnpm 11
+global; Java 25 (default), 17, and 8 installed — pick per project in `.mise.toml`. Python/data
+science uses the `miniconda` cask (conda init goes through `programs.zsh`, never `conda init`).
 
-- **Node + pnpm**: Node LTS and pnpm 11 are the global defaults.
-- **Java**: JDK 25 (default), 17, and 8 are all installed; pick per project.
-- **Python / data science**: the `miniconda` Homebrew cask (conda), separate from mise. With a
-  home-manager-managed `.zshrc`, add conda's init to `programs.zsh` rather than running `conda init`.
-
-**Atlassian Plugin SDK** — both versions are pinned via nix (`pkgs/atlassian-plugin-sdk`,
-instantiated per version in `modules/home-shared/programs/atlassian-sdk.nix`) and exposed at stable paths. Homebrew is NOT
-used — its tap has broken formula class names and the `atlas-*` binaries collide on link.
-- **8.2.7** at `~/.local/share/atlassian-plugin-sdk/8.2.7/bin` (pair with Java 8).
-- **9.1.1** at `~/.local/share/atlassian-plugin-sdk/9.1.1/bin` (pair with Java 17).
-
-Select one per project in `.mise.toml`, paired with its JDK:
+**Atlassian Plugin SDK** is nix-pinned at stable paths (Homebrew's tap is broken — never use it):
+`~/.local/share/atlassian-plugin-sdk/{8.2.7,9.1.1}/bin`. Pair 8.2.7 with Java 8 (`zulu-8`; Temurin
+has no arm64 JDK 8) and 9.1.1 with Java 17 (`temurin-17`) per project:
 
 ```toml
-# older Server/DC plugin project (SDK 8.2.7 + Java 8)
-[tools]
-java = "zulu-8"   # Temurin has no arm64 JDK 8 on Apple Silicon
-[env]
-_.path = ["~/.local/share/atlassian-plugin-sdk/8.2.7/bin"]
-```
-
-```toml
-# newer plugin project (SDK 9.1.1 + Java 17)
 [tools]
 java = "temurin-17"
 [env]
 _.path = ["~/.local/share/atlassian-plugin-sdk/9.1.1/bin"]
 ```
 
-The SDKs live in the read-only nix store, so if `atlas-mvn` fails trying to write into the SDK dir,
-point Maven's local repo at a writable path (e.g.
-`export MAVEN_OPTS=-Dmaven.repo.local=$HOME/.m2/repository`). Run `mise install` after editing versions.
-
-### Branch-based auto-switching (Atlassian plugin repos)
-
-Two commands (from `modules/home-shared/programs/atlassian-mise.nix`) switch the Java + SDK stack by git
-branch, per project:
-
-- `atlas-mise-enable` — run once inside an Atlassian plugin repo. Installs
-  `post-checkout`/`post-merge`/`post-rewrite` hooks, gitignores `.mise.local.toml`, and generates it
-  for the current branch.
-- `atlas-mise-gen` — regenerates `.mise.local.toml` from the current branch (called by the hooks).
-
-Branch rule: name contains **`wiki_9`** → Java 17 + SDK 9.1.1; otherwise → Java 8 + SDK 8.2.7. Edit
-`NEW_STACK_PATTERN` in `modules/home-shared/scripts/atlassian-mise/atlas-mise-gen.sh` to change it. The generated
-`.mise.local.toml` is a gitignored local override; the hook calls `atlas-mise-gen` off PATH, so run
-`git` from a shell that has the home-manager profile.
-
-## Adding things
-
-- **New host**: create `hosts/<name>/{default.nix,home.nix}` (default.nix sets
-  `nixpkgs.hostPlatform` + `networking.hostName` + its config; home.nix sets `hn.*` + host home) and
-  list it in `flake.nix` (attr name = hostname). See docs/runbooks/add-a-host.md.
-- **New system module**: add under `modules/darwin/` (or `modules/nixos/`) and import it in that
-  platform's `default.nix` — OR, if host-specific, put it in `hosts/<name>/default.nix`.
-- **New shared home module**: add under `modules/home-shared/programs/` and import it in
-  `modules/home-shared/default.nix`. macOS-only home module → `modules/darwin/home/` (imported by its
-  `default.nix`).
-- **New alias group**: add `modules/home-shared/aliases/<domain>.nix` and merge it in `aliases/default.nix`.
-- **New macOS package**: shared → `modules/darwin/homebrew/{taps,brews,casks}`; host-only →
-  `homebrew.casks`/`brews` in `hosts/<name>/default.nix`.
-- **New feature**: declare the option in `modules/home-shared/features.nix` (`hn.*`), gate the module with
-  `lib.mkIf config.hn.<f>.enable`; enable it per host in `hosts/<name>/home.nix`.
+`atlas-mise-enable` (run once per repo) installs git hooks that regenerate a gitignored
+`.mise.local.toml` per branch: name contains `wiki_9` → Java 17 + SDK 9.1.1, else Java 8 + SDK 8.2.7
+(rule: `NEW_STACK_PATTERN` in `modules/home-shared/scripts/atlassian-mise/atlas-mise-gen.sh`).
+If `atlas-mvn` tries to write into the read-only SDK dir, set
+`MAVEN_OPTS=-Dmaven.repo.local=$HOME/.m2/repository`. Full details:
+`modules/home-shared/programs/AGENTS.md`.

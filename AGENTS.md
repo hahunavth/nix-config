@@ -38,8 +38,9 @@ modules/                        # REUSABLE LAYERS a host imports
     default.nix                 #     shared module imports
     features.nix                #     hn.* FEATURE OPTIONS (declared here; hosts enable them; see below)
     files.nix                   #     static dotfiles (home.file / xdg.configFile)
-    programs/                   #     per-program: git ssh zsh starship neovim tmux direnv nh atuin
-                                #       mise maven atlassian-sdk atlassian-mise secrets (optional ones hn.*-gated)
+    programs/                   #     per-program: git ssh zsh (+oh-my-zsh) starship neovim tmux direnv
+                                #       fzf eza zoxide nh atuin mise maven atlassian-sdk atlassian-mise
+                                #       secrets (optional ones hn.*-gated)
     packages/                   #     categorized CLI packages: development.nix, system.nix
     aliases/                    #     shell aliases by domain (win-tunnel gated on hn.winTunnel)
     scripts/                    #     shell scripts (atlassian-mise/)

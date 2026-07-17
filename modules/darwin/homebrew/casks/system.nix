@@ -9,4 +9,5 @@
   "shottr" # Screenshot tool w/ annotation
   "hammerspoon" # Lua automation; plays copy/paste sounds (see modules/hammerspoon.nix)
   "stats" # Menu-bar system monitor (network up/down speed, CPU, RAM, ...)
+  "betterdisplay" # Display management: virtual/HiDPI resolutions, brightness, PiP
 ]

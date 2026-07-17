@@ -1,4 +1,6 @@
-{ config, ... }:
+# NOTE: re-add `config` to the lambda pattern if the MAVEN_OPTS line below is
+# ever uncommented (it references config.home.homeDirectory).
+{ ... }:
 
 {
   # Maven download/behavior tuning (applies to mvn and atlas-mvn alike).

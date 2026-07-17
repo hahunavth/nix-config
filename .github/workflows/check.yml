@@ -32,7 +32,9 @@ jobs:
       - name: statix
         run: nix run nixpkgs#statix -- check .
       - name: deadnix
-        run: git ls-files '*.nix' | grep -v '^modules/nixos/orbstack/' | xargs nix run nixpkgs#deadnix -- --fail
+        # hardware-configuration.nix is nixos-generate-config output (always has
+        # unused lambda args) — generated files are excluded like orbstack/.
+        run: git ls-files '*.nix' | grep -v -e '^modules/nixos/orbstack/' -e '/hardware-configuration\.nix$' | xargs nix run nixpkgs#deadnix -- --fail
 
   eval:
     name: eval all host configs

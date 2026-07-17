@@ -1,3 +1,7 @@
+---
+description: Add a new machine (hosts/<name>/ owns its config; wire it in flake.nix)
+argument-hint: "<host-name>"
+---
 Add a new machine. Each host OWNS its config under hosts/<name>/. Follow
 docs/runbooks/add-a-host.md (or add-nixos-host.md for NixOS):
 

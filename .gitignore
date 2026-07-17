@@ -4,3 +4,4 @@
 result
 result-*
 tmp
+.claude/settings.local.json

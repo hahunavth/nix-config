@@ -1,3 +1,7 @@
+---
+description: Add a GUI app (Homebrew cask), CLI tool (nix), or runtime (mise)
+argument-hint: "<package-name>"
+---
 Add a GUI app (Homebrew cask) or CLI tool. Follow docs/runbooks/add-a-package.md:
 
 - **GUI app** → add the cask to `modules/darwin/homebrew/casks/{apps,development,system}.nix`
@@ -7,4 +11,4 @@ Add a GUI app (Homebrew cask) or CLI tool. Follow docs/runbooks/add-a-package.md
   Confirm the attribute/name via the `nixos` MCP server first.
 - **Language runtime** → not a package; use mise (see AGENTS.md).
 
-Then `git add -A` and verify with /build.
+Then verify with /build (the git-add hook stages new files).

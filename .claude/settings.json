@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(nix build:*)",
+      "Bash(nix eval:*)",
+      "Bash(nix flake check:*)",
+      "Bash(nix flake metadata:*)",
+      "Bash(nix flake update:*)",
+      "Bash(nix fmt:*)",
+      "Bash(nix search:*)",
+      "Bash(nix path-info:*)",
+      "Bash(nix store diff-closures:*)",
+      "Bash(nix-store --query:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git ls-files:*)",
+      "Bash(statix:*)",
+      "Bash(deadnix:*)",
+      "Bash(nvd diff:*)",
+      "Bash(nh clean all --keep 5 --dry)",
+      "Bash(brew info:*)",
+      "Bash(brew list:*)",
+      "Bash(brew search:*)",
+      "Bash(brew --version)",
+      "Bash(brew --repository)",
+      "Bash(brew --prefix:*)",
+      "Bash(scutil --get LocalHostName)",
+      "Bash(hostname -s)",
+      "Read(//opt/homebrew/Caskroom/**)",
+      "Read(//nix/store/**)",
+      "Read(//run/current-system/**)"
+    ]
+  },
+  "enabledMcpjsonServers": ["nixos"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/git-add-flake.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-nix.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

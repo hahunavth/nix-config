@@ -9,6 +9,7 @@
     # macOS-only modules
     ./default-browser.nix # per-user LaunchServices default browser
     ./hammerspoon.nix # Lua automation (copy/paste sounds)
+    ./service-station-reload.nix # reload Service Station's Finder ext on volume remount (hn.serviceStationReload)
     ./conda.nix # miniconda shell init (macOS Homebrew cask)
     ./login-shell.nix # ~/.zprofile: Homebrew shellenv + OrbStack init
   ];

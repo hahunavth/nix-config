@@ -35,6 +35,7 @@
     ]
   },
   "enabledMcpjsonServers": ["nixos"],
+  "disableClaudeAiConnectors": true,
   "hooks": {
     "PreToolUse": [
       {

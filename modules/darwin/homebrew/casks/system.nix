@@ -4,7 +4,6 @@
   "input-source-pro" # Auto-switch keyboard input source per app/site
   "syncthing-app"
   "rectangle" # Window snapping / management
-  "jettison" # Auto-eject external drives on sleep
   "notunes" # Prevent iTunes / Apple Music from auto-launching
   "shottr" # Screenshot tool w/ annotation
   "hammerspoon" # Lua automation; plays copy/paste sounds (see modules/hammerspoon.nix)

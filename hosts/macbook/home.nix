@@ -10,7 +10,7 @@
   # Reload Service Station's Finder extension when the external SSD remounts —
   # its sandbox bookmark goes stale on replug (see the module for the full why).
   hn.serviceStationReload = {
-    enable = true;
+    enable = false;
     volumes = [ "/Volumes/ext_ssd" ];
   };
 }

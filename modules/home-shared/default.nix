@@ -31,6 +31,7 @@
     ./programs/zoxide.nix
     ./programs/nh.nix
     ./programs/atuin.nix
+    ./programs/docker.nix # CLI-only docker + remote-engine contexts (hn.remoteDocker)
 
     # Dev toolchains
     ./programs/mise.nix

@@ -68,6 +68,38 @@ in
       };
     };
 
+    # Docker CLI talking to a remote engine over SSH (no local daemon).
+    # Consumed by modules/home-shared/programs/docker.nix.
+    remoteDocker = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Install the Docker CLI (no engine) and declare remote-engine contexts.";
+      };
+      contexts = mkOption {
+        type = types.attrsOf types.str;
+        default = { };
+        example = {
+          homelab = "ssh://homelab-tailscale";
+        };
+        description = ''
+          Docker contexts to declare: context name -> DOCKER_HOST URL. The ssh://
+          form needs a matching Host block in programs/ssh.nix and `docker` on the
+          remote PATH. Each name also gets a `dk-<name>` alias.
+        '';
+      };
+      defaultContext = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "homelab";
+        description = ''
+          Export DOCKER_CONTEXT=<name> in every shell. null (default) leaves the
+          choice to `docker context use`, which is per-machine state but stays
+          overridable per command and per project.
+        '';
+      };
+    };
+
     # Re-enter the working directory when a watched external volume is unplugged
     # and replugged, so the shell stops erroring on every command (macOS only).
     # Consumed by modules/darwin/home/stale-cwd.nix.

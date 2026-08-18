@@ -7,6 +7,14 @@
   hn.atlassian.enable = true; # Atlassian Plugin SDK + branch-based mise switching
   hn.winTunnel.enable = true; # socat port-forwards to the Windows box
 
+  # Docker CLI with no local engine: the homelab (Windows box, Docker Desktop) is
+  # reached over Tailscale through the `homelab-tailscale` ssh host. No global
+  # DOCKER_HOST — pick with `dctx homelab` or per project via direnv.
+  hn.remoteDocker = {
+    enable = true;
+    contexts.homelab = "ssh://homelab-tailscale";
+  };
+
   # Reload Service Station's Finder extension when the external SSD remounts —
   # its sandbox bookmark goes stale on replug (see the module for the full why).
   hn.serviceStationReload = {

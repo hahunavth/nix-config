@@ -6,6 +6,7 @@
   "sublime-text"
   "orbstack" # Docker/Linux VMs (Docker Desktop alternative)
   "dbeaver-community" # Database GUI client
+  "visualdiffer" # Visual folder/file diff tool
   "warp" # Warp terminal
   "iterm2" # Terminal emulator (best Nerd Font / powerline rendering)
   "miniconda" # Python / conda data-science stack

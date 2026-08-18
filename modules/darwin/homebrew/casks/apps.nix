@@ -6,4 +6,5 @@
   "microsoft-edge"
   "obsidian" # Notes / knowledge base
   "bitwarden" # Password manager
+  "amazon-workspaces" # Amazon WorkSpaces remote desktop client
 ]

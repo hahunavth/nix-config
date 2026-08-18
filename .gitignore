@@ -5,3 +5,4 @@ result
 result-*
 tmp
 .claude/settings.local.json
+.DS_Store

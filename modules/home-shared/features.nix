@@ -67,5 +67,28 @@ in
         description = "Also relaunch Finder after reloading the extension (restores windows; aborts any in-progress Finder copy).";
       };
     };
+
+    # Re-enter the working directory when a watched external volume is unplugged
+    # and replugged, so the shell stops erroring on every command (macOS only).
+    # Consumed by modules/darwin/home/stale-cwd.nix.
+    staleCwdRecovery = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Recover the shell's working directory after a watched volume remounts (macOS only).";
+      };
+      volumes = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "/Volumes/ext_ssd" ];
+        description = "Mount-point paths to guard; the recovery hook is inert unless the cwd is on one of them.";
+      };
+      waitTimeout = mkOption {
+        type = types.ints.unsigned;
+        default = 0;
+        example = 300;
+        description = "Seconds to hold the prompt waiting for the volume; 0 waits indefinitely. Ctrl-C always ends the wait.";
+      };
+    };
   };
 }

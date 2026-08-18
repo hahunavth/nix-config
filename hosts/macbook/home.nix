@@ -13,4 +13,11 @@
     enable = false;
     volumes = [ "/Volumes/ext_ssd" ];
   };
+
+  # Replugging the external SSD leaves every shell that was sitting on it with an
+  # unusable working directory; a chdir is the only repair (see the module).
+  hn.staleCwdRecovery = {
+    enable = true;
+    volumes = [ "/Volumes/ext_ssd" ];
+  };
 }

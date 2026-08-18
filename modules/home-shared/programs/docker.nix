@@ -16,7 +16,15 @@
 # socket). Setting $DOCKER_HOST globally is therefore a sledgehammer — it wins
 # over everything and makes every local docker use (OrbStack, testcontainers,
 # devcontainers) silently target the remote box, and every command hang when the
-# remote is asleep. hn.remoteDocker.defaultContext is the softer opt-in.
+# remote is asleep. hn.remoteDocker.defaultContext is the softer opt-in: it sets
+# $DOCKER_CONTEXT, which still yields to `--context` and to a per-project
+# $DOCKER_HOST from direnv.
+#
+# The one sharp edge of that: while $DOCKER_CONTEXT is set, `docker context use`
+# is a silent no-op. It rewrites config.json and prints "Current context is now
+# X", but the env var still wins and `docker context show` keeps reporting the
+# old one (verified). So `dctx` below switches the variable instead — which also
+# scopes the switch to the current shell rather than to the whole machine.
 {
   config,
   lib,
@@ -56,14 +64,33 @@ lib.mkIf cfg.enable {
   home.file = lib.mapAttrs' contextFile cfg.contexts;
 
   programs.zsh.shellAliases = {
-    dctx = "docker context use"; # dctx homelab / dctx default
     dctxls = "docker context ls";
   }
   // contextAliases;
 
+  # `dctx <name>` retargets this shell; `dctx` alone lists. Validating first
+  # keeps a typo from pointing the shell at a context that doesn't exist —
+  # `docker context inspect` reads local metadata only (~10ms, no daemon call).
+  programs.zsh.initContent = ''
+    dctx() {
+      if (( $# == 0 )); then
+        docker context ls
+        return
+      fi
+      docker context inspect -- "$1" > /dev/null || return
+      export DOCKER_CONTEXT=$1
+      print -r -- "docker context: $1 -> $(docker context inspect -- "$1" --format '{{.Endpoints.docker.Host}}')"
+    }
+  '';
+
   # Opt-in global default. DOCKER_CONTEXT rather than DOCKER_HOST: `--context`
   # and a per-project DOCKER_HOST (direnv) still override it, and
-  # `docker context ls` keeps showing the truth.
+  # `docker context ls` keeps showing the truth. `unset DOCKER_CONTEXT` in a
+  # shell falls back to whatever config.json selects.
+  #
+  # Scope: home-manager writes session variables into ~/.zshenv, which every zsh
+  # reads — non-interactive ones included. So zsh scripts inherit this default
+  # too (unlike `dctx`, which lives in .zshrc and is interactive-only).
   home.sessionVariables = lib.mkIf (cfg.defaultContext != null) {
     DOCKER_CONTEXT = cfg.defaultContext;
   };

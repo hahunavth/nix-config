@@ -8,11 +8,13 @@
   hn.winTunnel.enable = true; # socat port-forwards to the Windows box
 
   # Docker CLI with no local engine: the homelab (Windows box, Docker Desktop) is
-  # reached over Tailscale through the `homelab-tailscale` ssh host. No global
-  # DOCKER_HOST — pick with `dctx homelab` or per project via direnv.
+  # reached over Tailscale through the `homelab-tailscale` ssh host, and is the
+  # default target. Switch a single shell with `dctx default`, one command with
+  # `docker --context default`, or a project with DOCKER_HOST in .envrc.
   hn.remoteDocker = {
     enable = true;
     contexts.homelab = "ssh://homelab-tailscale";
+    defaultContext = "homelab";
   };
 
   # Reload Service Station's Finder extension when the external SSD remounts —

@@ -93,9 +93,12 @@ in
         default = null;
         example = "homelab";
         description = ''
-          Export DOCKER_CONTEXT=<name> in every shell. null (default) leaves the
-          choice to `docker context use`, which is per-machine state but stays
-          overridable per command and per project.
+          Export DOCKER_CONTEXT=<name>. Home-manager puts session variables in
+          ~/.zshenv, so this reaches non-interactive zsh (scripts) too, not just
+          prompts. Still yields to `docker --context` and to a per-project
+          DOCKER_HOST, but it does shadow `docker context use` (which then reports
+          success and changes nothing) — use the `dctx` function to switch a shell
+          instead. null leaves the choice to `docker context use`.
         '';
       };
     };

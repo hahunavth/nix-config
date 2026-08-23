@@ -1,7 +1,12 @@
-# nixos-desktop — host-specific home config (on top of the shared core).
-# The GUI apps + CLI tools this VM needs (Claude Desktop / OpenCode Desktop are
-# installed at system level in default.nix). "No lock screen" is handled there
-# too (XFCE screensaver disabled).
+# Layer 4 of 4 — the XFCE VM's home config: the apps this machine wants, on top
+# of the shared core.
+#
+# GUI apps come from nixpkgs here, not Homebrew — the casks-for-GUI rule is a
+# macOS rule, and on Linux nixpkgs is the better source.
+#
+# Two exceptions live in ./default.nix instead, at system level: Claude Desktop
+# and OpenCode Desktop, because they are built from this flake's own `packages`
+# and `self` is only in the system specialArgs.
 { pkgs, ... }:
 
 {

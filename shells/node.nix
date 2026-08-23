@@ -1,6 +1,9 @@
 # Ad-hoc Node shell: `nix develop .#node`.
-# For pinned per-project versions prefer mise (Node LTS + pnpm are global
-# defaults); use this for a quick reproducible entry without a .mise.toml.
+#
+# mise owns per-project Node versions (LTS + pnpm are its globals) and is what
+# a real project should use. Reach for this instead when you want a version
+# pinned by the flake lock rather than resolved at `mise install` time, or when
+# the directory should not gain a .mise.toml at all.
 { pkgs }:
 pkgs.mkShell {
   packages = with pkgs; [

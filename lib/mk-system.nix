@@ -1,13 +1,28 @@
-# System builders: turn a host directory into a darwin/nixos configuration.
+# The builders: hostPath -> a complete system configuration.
 #
-# A host owns its config in hosts/<name>/ (default.nix = system module, home.nix =
-# home module). These builders add the reusable layers around it: the platform
-# base (modules/darwin | modules/nixos), the shared home core (modules/*/home),
-# the sops HM module, and (darwin) nix-homebrew. The host's default.nix sets its
-# own `nixpkgs.hostPlatform`, so no `system` arg is passed to darwin/nixosSystem.
+# This is the only file that knows how the layers stack up. Everything it
+# assembles is either reusable (modules/) or owned by the machine
+# (hosts/<name>/), and the split is deliberate — a builder that grew a
+# per-host special case would put machine knowledge back into shared code.
 #
-# `identity` (username + emails + github) is global and threaded to every module
-# as `userConfig` via specialArgs.
+# What each builder composes, in module-list order:
+#   1. the platform base       modules/darwin | modules/nixos
+#   2. the host's system module hosts/<name>/default.nix
+#   3. home-manager, wired by  ./mk-home.nix, which itself pulls in the
+#      platform home entry (modules/*/home -> modules/home-shared) plus
+#      hosts/<name>/home.nix
+#   4. darwin only: nix-homebrew
+#
+# The Nix module system MERGES all of these rather than applying them in
+# sequence, so ordering here is presentation, not precedence: a shared module
+# marks a value lib.mkDefault and the host simply assigns over it.
+#
+# No `system` argument is passed to darwinSystem/nixosSystem on purpose — each
+# host declares its own `nixpkgs.hostPlatform`, which keeps the platform next
+# to the machine it describes instead of here.
+#
+# `identity` is the global user (flake.nix), handed to every module as
+# `userConfig` through specialArgs so nothing has to hardcode a username.
 {
   inputs,
   identity,
@@ -25,7 +40,9 @@ let
   sharedModules = [ sops-nix.homeManagerModules.sops ];
 in
 {
-  # hostPath e.g. ./hosts/macbook — a directory with default.nix + home.nix.
+  # hostPath is a DIRECTORY containing default.nix + home.nix, e.g.
+  # ./hosts/macbook. Both files are required; a host without a home.nix would
+  # fail here rather than silently skipping its user config.
   mkDarwin =
     hostPath:
     nix-darwin.lib.darwinSystem {

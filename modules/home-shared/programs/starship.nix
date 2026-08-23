@@ -1,3 +1,13 @@
+# starship — the prompt, drawn as one contiguous powerline bar.
+#
+# Two things here are unusual enough to be worth reading before editing: glyphs
+# are stored as hex codepoints and decoded (see `g` below), and the zone
+# separators live in the top-level `format` rather than in each module (see the
+# palette comment). Both exist for reasons that are not obvious from the result.
+#
+# Requires a Nerd Font in the TERMINAL's settings — a font in
+# modules/darwin/fonts.nix is installed, not selected, so a terminal still set
+# to a plain font renders every icon as a replacement box.
 { lib, ... }:
 
 let
@@ -91,7 +101,11 @@ in
       # Conditional group: prints nothing (not even padding) on a clean repo.
       git_status.format = "([$all_status$ahead_behind ](fg:${txt} bg:${gitBg}))";
 
-      # Toolchain zone: colored icon, neutral version text, shared background.
+      # Toolchain zone. Each module contributes an icon in its language's own
+      # colour plus a dim version string, all on the shared grey — so the eye
+      # picks out which toolchains are active by hue, and reads versions only
+      # when it wants them. All of these are conditional: starship prints
+      # nothing for a language the current directory has no evidence of.
       nodejs = {
         symbol = "${icon.node} ";
         format = "[ $symbol](fg:114 bg:${envBg})[$version ](fg:${dim} bg:${envBg})";
@@ -130,7 +144,11 @@ in
         format = "[ $symbol](fg:81 bg:${envBg})[$name ](fg:${dim} bg:${envBg})";
       };
 
-      # Active Atlassian Plugin SDK version, only in enabled plugin repos.
+      # Active Atlassian Plugin SDK version. There is no built-in module for
+      # this, so it reads the .mise.local.toml that atlas-mise generates per
+      # branch — which means the prompt shows the SDK the branch selected,
+      # the thing that actually changes under you. `when` keeps the (forked)
+      # command from running outside enabled plugin repos.
       custom.atlassian_sdk = {
         description = "Active Atlassian Plugin SDK version";
         detect_files = [ ".mise.local.toml" ];

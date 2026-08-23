@@ -1,20 +1,36 @@
+# The one entry point. Everything here is either an input pin, the global
+# identity, or a list of things to build — no machine-specific settings, which
+# live in hosts/<name>/ (see hosts/AGENTS.md).
+#
+# Two nixpkgs are pinned on purpose: the darwin branch has the best macOS
+# binary cache, the nixos branch the best Linux one. Both track the same 26.05
+# release, so the two platforms never drift a release apart.
+#
+# Outputs: darwinConfigurations / nixosConfigurations (one attr per machine,
+# named by hostname), packages + checks (pkgs/), devShells (shells/),
+# apps.build-switch, and formatter (treefmt.nix).
 {
-  description = "Darwin system flake";
+  description = "macOS + NixOS system configuration (nix-darwin + home-manager)";
 
   inputs = {
-    # Nix darwin (nixpkgs tracks the darwin branch, best cache for macOS)
+    # macOS system layer. nixpkgs follows the *darwin* branch: same 26.05
+    # release, but built for darwin, so the cache hit rate is far better.
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    # nixpkgs for Linux (NixOS) hosts — same 26.05 release, nixos branch.
+    # Linux hosts get their own nixpkgs (nixos branch, same release). Kept
+    # separate rather than `follows` so neither platform pays the other's
+    # cache misses.
     nixpkgs-linux.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-    # Home manager (cross-platform; with useGlobalPkgs it uses each system's pkgs)
+    # User environment, used by both platforms. useGlobalPkgs (lib/mk-home.nix)
+    # makes it reuse the system's pkgs rather than instantiating its own.
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Declarative management of the Homebrew installation itself
+    # Manages the Homebrew *installation* (not just the package lists), so
+    # /opt/homebrew is owned by nix too. Consumed in modules/darwin/homebrew.
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
 
     # Secrets management (age-encrypted; see modules/home-shared/programs/secrets.nix).
@@ -35,9 +51,11 @@
     let
       lib = nixpkgs.lib;
 
-      # Global identity — the single user across all hosts. Threaded to every
-      # module as `userConfig` via specialArgs (see lib/mk-system.nix). Each host
-      # owns the rest of its config in hosts/<name>/.
+      # The single user, shared by every host — the one thing deliberately NOT
+      # delegated to hosts/, because duplicating it per machine is how the
+      # commit email on one of them silently goes stale. Threaded to every
+      # module as `userConfig` via specialArgs (lib/mk-system.nix); modules must
+      # read it from there and never hardcode a name or address.
       identity = {
         username = "kod_admin";
         fullName = "hahunavth";
@@ -50,8 +68,9 @@
       # Darwin/NixOS builders. Each takes a host directory (hosts/<name>/).
       inherit (import ./lib/mk-system.nix { inherit inputs identity; }) mkDarwin mkNixos;
 
-      # devShell / formatter for both the Mac and the Linux VM. Pick pkgs from
-      # the matching nixpkgs per system.
+      # The per-system outputs (packages, checks, devShells, apps, formatter)
+      # instantiated for every system this repo can be evaluated from, each
+      # against the nixpkgs that matches its platform.
       forAllSystems =
         f:
         lib.genAttrs
@@ -77,8 +96,10 @@
           );
     in
     {
-      # Explicit host list. The attr name is the hostname (darwin-rebuild /
-      # nixos-rebuild select by it); the value is that host's directory under hosts/.
+      # The host registry — listed explicitly rather than discovered by globbing
+      # hosts/, so adding a directory is never enough to start building for a
+      # machine. The attr NAME is the hostname darwin-rebuild / nixos-rebuild
+      # match on; the value is that machine's directory.
       darwinConfigurations."KOD-ADMINs-MacBook-Pro" = mkDarwin ./hosts/macbook;
 
       nixosConfigurations = {
@@ -86,15 +107,18 @@
         nixos-desktop = mkNixos ./hosts/nixos-desktop;
       };
 
-      # Custom packages (pkgs/), exported per system. Build one with
+      # Custom derivations (pkgs/), buildable on their own:
       # `nix build .#atlassian-plugin-sdk-9_1_1`.
       packages = forAllSystems (pkgs: import ./pkgs { inherit pkgs; });
 
-      # `nix flake check` builds these, so a rotted fetchurl URL/hash fails loudly
-      # instead of only at rebuild time.
+      # Same set again as `checks`, so `nix flake check` and CI actually BUILD
+      # them. These are all fetchurl pins against upstream servers, and the
+      # failure mode worth catching early is an upstream that moved or rehashed
+      # a tarball — otherwise you find out mid-rebuild.
       checks = forAllSystems (pkgs: import ./pkgs { inherit pkgs; });
 
-      # Project dev shells (shells/), entered with `nix develop .#<name>`.
+      # Ad-hoc project shells (shells/). Complement mise, which owns pinned
+      # per-project runtimes; these are for a reproducible one-off entry.
       devShells = forAllSystems (
         pkgs:
         let
@@ -108,8 +132,9 @@
         }
       );
 
-      # `nix run .#build-switch` — build + switch the CURRENT machine's config,
-      # picking the darwinConfigurations/nixosConfigurations entry by hostname.
+      # `nix run .#build-switch` — one command that works on any host: it reads
+      # the machine's own hostname and switches to the matching attr, so no
+      # per-machine alias has to know which config it is.
       apps = forAllSystems (
         pkgs:
         let
@@ -132,8 +157,7 @@
         }
       );
 
-      # `nix fmt` runs treefmt (config in ./treefmt.nix) — nixfmt over all .nix
-      # files except the generated/vendored trees.
+      # `nix fmt` — treefmt, configured in ./treefmt.nix.
       formatter = forAllSystems (
         pkgs: (inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix).config.build.wrapper
       );

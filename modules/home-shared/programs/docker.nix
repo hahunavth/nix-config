@@ -1,4 +1,9 @@
-# Docker CLI pointed at a REMOTE engine over SSH — no local daemon.
+# Docker CLI pointed at a REMOTE engine over SSH. Gated behind hn.remoteDocker.
+#
+# Installs the client only — no engine. On the Mac a local engine is available
+# separately from the OrbStack cask, and the `default` context still reaches it;
+# this module adds the remote as another context and (optionally) makes it the
+# one you get without asking.
 #
 # `DOCKER_HOST=ssh://<host>` makes the local CLI run `ssh <host> docker system
 # dial-stdio` and tunnel the Docker API over that stdio pipe. Nothing listens on

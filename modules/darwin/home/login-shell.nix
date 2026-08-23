@@ -1,6 +1,12 @@
-# Login-shell environment for macOS — brought under home-manager instead of the
-# untracked ~/.zprofile that the Homebrew and OrbStack installers write to.
-# `profileExtra` becomes the generated ~/.zprofile (sourced by login shells).
+# ~/.zprofile for macOS — reclaimed from the Homebrew and OrbStack installers,
+# both of which append to it and leave it untracked.
+#
+# `profileExtra` generates ~/.zprofile, which LOGIN shells source. That is the
+# right file for these two: PATH belongs in a login shell so every child process
+# inherits it, whereas ~/.zshrc (programs/zsh.nix) runs per interactive shell and
+# would redo the work on every prompt while still missing non-interactive ones.
+# Session variables that must reach scripts go in ~/.zshenv instead
+# (home.sessionVariables).
 #
 # Both lines are macOS-only, which is why this lives in the darwin home layer
 # rather than the cross-platform shared zsh module (Homebrew/OrbStack are not

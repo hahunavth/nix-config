@@ -1,21 +1,32 @@
+# The nix daemon itself: features, trust, and the two housekeeping jobs.
+#
+# Mirrored for Linux in modules/nixos/configuration.nix — same intent, different
+# option spellings (launchd interval here, systemd calendar there). Changing a
+# policy in one place and not the other is how the hosts quietly diverge.
 { pkgs, userConfig, ... }:
 
 {
-  # nix-darwin manages nix-daemon automatically when nix.enable is on
+  # nix-darwin runs and updates nix-daemon for us whenever nix.enable is on
+  # (the default), so this only pins which nix that daemon is.
   nix.package = pkgs.nix;
 
   nix.settings = {
-    # Enable flakes etc. by default (no more --extra-experimental-features)
+    # Flakes are how this entire repo is consumed, so they are on permanently
+    # rather than passed per command.
     experimental-features = [
       "nix-command"
       "flakes"
     ];
-    # The daemon must trust the admin user (needed e.g. to offload builds to
-    # the linux-builder). root is always trusted implicitly.
+    # Needed for build offloading: an untrusted user's request to use a remote
+    # builder (./linux-builder.nix) is ignored by the daemon, silently, and the
+    # build just runs locally or fails on the wrong platform. root is always
+    # trusted implicitly, hence only the human here.
     trusted-users = [ userConfig.username ];
   };
 
-  # Garbage collection (every Sunday 4:00, delete generations older than 30 days)
+  # Weekly GC, Sunday 04:00 (Weekday 0 = Sunday in launchd). 30 days is chosen
+  # to outlast a broken switch you only notice next week — rolling back needs
+  # the old generation to still exist.
   nix.gc = {
     automatic = true;
     interval = {
@@ -26,6 +37,7 @@
     options = "--delete-older-than 30d";
   };
 
-  # Deduplicate the nix store
+  # Hard-link identical files across store paths. Pays off here because several
+  # closures (three hosts, plus every generation) overlap heavily.
   nix.optimise.automatic = true;
 }

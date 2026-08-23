@@ -1,17 +1,23 @@
 { pkgs, ... }:
 
 {
-  # nh: nicer `nh darwin switch` / `nh os switch` (live build tree + a diff of
-  # what each rebuild changes). flake= sets NH_FLAKE so it needs no --flake.
-  # On the OrbStack VM the repo is reached via the Mac mount (/private/etc/...).
+  # nh wraps darwin-rebuild/nixos-rebuild with a live build tree and a package
+  # diff of what the new generation changes — the diff is the reason to use it,
+  # since a plain switch reports success without saying what moved.
+  #
+  # `flake` exports NH_FLAKE, so `nh darwin switch` needs no --flake from any
+  # directory. The two paths are one checkout: the OrbStack VM sees the Mac's
+  # /etc/nix-darwin at /private/etc/nix-darwin over virtiofs.
   programs.nh = {
     enable = true;
     flake = if pkgs.stdenv.isDarwin then "/etc/nix-darwin" else "/private/etc/nix-darwin";
-    # Do NOT enable programs.nh.clean — nix.gc already handles garbage
-    # collection (darwin/nix-settings.nix / nixos/configuration.nix); enabling
-    # both would double up.
+    # Do NOT enable programs.nh.clean. Garbage collection is already scheduled
+    # by nix.gc (modules/darwin/nix-settings.nix, modules/nixos/configuration.nix);
+    # a second timer with its own retention policy would fight the first, and
+    # whichever is stricter silently wins.
   };
 
-  # standalone closure-diff tool (nix store diff-closures front-end)
+  # nvd on its own too, for diffing two closures without switching — what
+  # /diff uses to preview a rebuild.
   home.packages = [ pkgs.nvd ];
 }

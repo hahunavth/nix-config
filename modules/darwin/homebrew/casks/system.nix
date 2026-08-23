@@ -1,4 +1,10 @@
-# System utilities — every macOS host.
+# Menu-bar and system utilities for every macOS host.
+#
+# Several of these own a job that this config deliberately does NOT automate in
+# Lua or nix: rectangle does window snapping, raycast the launcher and
+# clipboard, input-source-pro per-app input methods. hammerspoon is left with
+# only the event-driven work nothing else covers — see
+# modules/darwin/home/hammerspoon.nix.
 [
   "tailscale-app" # Tailscale mesh VPN (GUI + menu-bar app)
   "input-source-pro" # Auto-switch keyboard input source per app/site

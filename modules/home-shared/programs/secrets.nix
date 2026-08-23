@@ -1,10 +1,18 @@
-# Secrets via sops-nix (age-encrypted). SCAFFOLD — inert until a host opts in.
+# Secrets via sops-nix (age-encrypted). SCAFFOLD — configures nothing yet.
 #
-# The sops home-manager module is always loaded (see lib/mk-system.nix
-# `sharedModules`), but this module only configures it when
-# `hn.secrets.enable` is true. That flag defaults to false because sops needs a
-# private age key present on the machine at ~/.config/sops/age/keys.txt, which
-# is placed manually (never committed). See docs/runbooks/secrets.md.
+# The sops home-manager module is loaded on every host (lib/mk-system.nix
+# `sharedModules`); this file is what would actually use it, and it stays inert
+# until hn.secrets.enable.
+#
+# Off by default for a reason that no amount of nix can fix: decryption needs a
+# private age key already on the machine at ~/.config/sops/age/keys.txt. That
+# key cannot be committed, so enabling this on a machine that lacks it turns
+# every rebuild into a failure. Setting up the key is a manual, per-machine
+# step — docs/runbooks/secrets.md.
+#
+# The target this exists for is ./ssh.nix, whose private keys are currently
+# hand-copied files; moving them here is what would make a fresh machine need
+# only the one age key.
 #
 # To turn it on for a host:
 #   1. Generate a key and add its PUBLIC recipient to secrets/.sops.yaml.

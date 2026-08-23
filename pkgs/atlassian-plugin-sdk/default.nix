@@ -28,6 +28,9 @@ stdenv.mkDerivation {
   dontConfigure = true;
   dontBuild = true;
 
+  # The tarball is already the finished layout, so this is a copy, not a build.
+  # The .bat files are dropped only to keep $out/bin free of things that can
+  # never run here.
   installPhase = ''
     runHook preInstall
     mkdir -p $out

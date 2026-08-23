@@ -1,15 +1,22 @@
 # OpenCode Desktop for Linux — repackaged from the upstream .deb.
 #
-# OpenCode's desktop app (beta) is an Electron bundle shipped as .deb/.rpm/AppImage
-# from github.com/anomalyco/opencode releases (the sst/opencode desktop stream). We
-# fetch the pinned amd64 .deb, unpack it, autoPatchelf the bundled Electron binary
-# under /opt/OpenCode against Nix runtime libs, and wrap the launcher. The CLI is a
-# separate nixpkgs package (`opencode`).
+# Not in nixpkgs, and the desktop app is only published as .deb/.rpm/AppImage,
+# none of which NixOS can consume directly. So: fetch the pinned amd64 .deb,
+# unpack it, autoPatchelf the bundled Electron binary under /opt/OpenCode against
+# the Nix equivalents of what it links, and wrap the launcher. The JS bundle is
+# used as shipped — nothing is rebuilt from source.
 #
-# Update: bump `version`, refetch, paste the hash Nix reports. Assets are at
-# https://github.com/anomalyco/opencode/releases (opencode-desktop-linux-amd64.deb).
+# Same shape as ../claude-desktop, and the same trade: a binary repack tracks
+# upstream releases by hand rather than being built reproducibly.
 #
-# x86_64-linux only; guarded in pkgs/default.nix.
+# The terminal CLI is unrelated and comes from nixpkgs (`opencode`).
+#
+# Update: bump `version`, rebuild, paste the hash Nix reports in the error.
+# Assets: https://github.com/anomalyco/opencode/releases
+# (opencode-desktop-linux-amd64.deb).
+#
+# x86_64-linux only (for the nixos-desktop VM); guarded in pkgs/default.nix so
+# it never evaluates on the Mac.
 {
   lib,
   stdenv,

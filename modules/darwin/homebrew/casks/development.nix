@@ -1,4 +1,5 @@
-# Development tools — every macOS host.
+# Development GUI apps for every macOS host. (CLI tools come from nix, in
+# modules/home-shared/packages/.)
 [
   "claude" # Claude desktop app
   "claude-code@latest" # Claude Code CLI

@@ -1,5 +1,11 @@
-# socat port forwards to the homelab (Windows box, reached over Tailscale).
-# Binds to localhost only. Gated behind hn.homelabTunnel.
+# socat port forwards to the homelab — a Windows box reached over Tailscale.
+#
+# For pointing a local debugger or client at a service running over there
+# without changing its address. Every listener binds 127.0.0.1 explicitly, so
+# the forwards are not reachable from the network even though Tailscale is.
+#
+# Gated behind hn.homelabTunnel (work-only). Same box as hn.remoteDocker and
+# the homelab-tailscale ssh host.
 #   hl-on     start the usual set (local 5005->5005, 7130, 6090, 9220)
 #   hl-5006   switch local 5005 to forward to remote 5006 instead
 #   hl-5005   switch local 5005 back to remote 5005
@@ -7,11 +13,15 @@
 { lib, ... }:
 let
   homelabHost = "100.110.190.53";
-  # build a backgrounded socat forward: local port -> homelabHost:remote port
+  # One backgrounded forward: local port -> homelabHost:remote. `fork` lets it
+  # serve more than one connection; `reuseaddr` allows a restart without
+  # waiting out TIME_WAIT.
   fwd =
     local: remote:
     "nohup socat TCP-LISTEN:${local},fork,reuseaddr,bind=127.0.0.1 TCP:${homelabHost}:${remote} >/dev/null 2>&1 &";
-  # kill any existing socat listener on a given local port
+  # Kill whatever is already listening on a local port, matched by the socat
+  # command line — which is why the trailing comma is in the pattern: without
+  # it, TCP-LISTEN:5005 would also match a 50051 listener.
   killPort = port: "pkill -f 'TCP-LISTEN:${port},'";
   kill5005 = killPort "5005";
   kill5006 = killPort "5006";

@@ -1,4 +1,7 @@
-# Dev shell for editing THIS config repo. `nix develop` (or `.#default`).
+# Toolchain for editing THIS repo: `nix develop` (or `.#default`).
+#
+# Entered automatically by .envrc via direnv. Nothing here is installed into
+# the user profile on purpose — these are only needed inside this checkout.
 { pkgs }:
 pkgs.mkShell {
   packages = with pkgs; [

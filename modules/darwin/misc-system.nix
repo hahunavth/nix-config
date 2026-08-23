@@ -1,15 +1,24 @@
+# Per-user system plumbing: which account nix-darwin treats as primary, and the
+# system's login-shell setup.
 { userConfig, ... }:
 
 {
-  # For backwards compatibility (check the changelog before changing)
+  # Records which nix-darwin generation's DEFAULTS this install was made
+  # against; it is not a version to keep current. Read darwin-changes before
+  # ever touching it — bumping it changes option defaults underneath you.
   system.stateVersion = 4;
 
-  # Some nix-darwin options (user defaults, Homebrew, ...) apply to this user
+  # Several nix-darwin options act on one specific user rather than the system:
+  # `system.defaults` writes that user's plists, and Homebrew activation runs as
+  # them. This names who.
   system.primaryUser = userConfig.username;
 
   users.users.${userConfig.username}.home = "/Users/${userConfig.username}";
 
-  # zsh system-wide (login shell integration; home-manager manages ~/.zshrc)
+  # System-side zsh only: /etc/zshrc, /etc/zprofile and listing zsh in
+  # /etc/shells so it is a valid login shell. The user's own ~/.zshrc comes from
+  # home-manager (modules/home-shared/programs/zsh.nix); these two do not
+  # overlap.
   programs.zsh.enable = true;
 
   # No nix bash in the system profile. nixpkgs bash 5.3 feeds here-documents

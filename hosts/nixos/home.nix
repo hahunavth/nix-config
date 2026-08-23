@@ -1,5 +1,8 @@
-# OrbStack dev VM — host-specific home config. It's a KOD dev VM, so keep the
-# Atlassian tooling.
+# Layer 4 of 4 — the OrbStack dev VM's home config.
+#
+# One line, and that is the point: everything else this VM needs is already in
+# the shared core, so the shell, git, editor and prompt match the Mac exactly.
+# The Atlassian tooling is on because this is a work dev VM.
 { ... }:
 
 {

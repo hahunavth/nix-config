@@ -1,6 +1,9 @@
 # Ad-hoc Python shell: `nix develop .#python`.
-# For data-science work use the miniconda cask (see AGENTS.md "Dev toolchains");
-# this is a lightweight uv-based entry for general scripting.
+#
+# Python is the one runtime mise does NOT own here — conda does, via the
+# miniconda cask (modules/darwin/home/conda.nix). Use conda for anything
+# data-science; this uv-based shell is for general scripting, and unlike a
+# conda env it is pinned by the flake lock.
 { pkgs }:
 pkgs.mkShell {
   packages = with pkgs; [

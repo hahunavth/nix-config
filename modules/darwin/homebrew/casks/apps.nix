@@ -1,4 +1,7 @@
-# General desktop applications — every macOS host.
+# General-purpose GUI apps for every macOS host.
+#
+# Four browsers is deliberate, not leftovers: hn.hammerspoon.urlRouter routes
+# links between them by hostname, so each one is a routing target.
 [
   "arc"
   "brave-browser"

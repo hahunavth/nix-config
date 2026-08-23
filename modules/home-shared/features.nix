@@ -1,10 +1,23 @@
-# Feature registry: hn.* toggles for optional user modules.
+# The feature registry — every hn.* option, declared in one place.
 #
-# Each host opts in from its own hosts/<name>/home.nix, e.g.:
-#   hn.atlassian.enable = true;
-# Defaults are platform-based where sensible (hammerspoon/defaultBrowser are
-# macOS-only); everything else is off. Consuming modules use
-# `lib.mkIf config.hn.<feature>.enable`.
+# This file declares and NEVER enables. That separation is the point: a reader
+# can see the full set of optional behaviour without opening seven modules, and
+# each machine's hosts/<name>/home.nix reads as a short list of what that
+# machine actually does.
+#
+# The contract, in three parts:
+#   1. declare the option here;
+#   2. gate the consuming module with `lib.mkIf config.hn.<f>.enable`, so an
+#      off feature contributes nothing to the closure;
+#   3. enable it from the host: `hn.<f>.enable = true;`.
+#
+# Defaults lean off. The exceptions are the two macOS features that every Mac
+# wants (hammerspoon, defaultBrowser) and are meaningless on Linux, so they key
+# off the platform instead of being repeated in every darwin host.
+#
+# Each option block below names the module that consumes it — that pointer is
+# the only link between a declaration and its implementation, so keep it
+# accurate when a module moves.
 {
   lib,
   pkgs,
@@ -14,7 +27,8 @@ let
   inherit (lib) mkOption types;
   isDarwin = pkgs.stdenv.isDarwin;
 
-  # Defaults: platform-based where it makes sense, else off (host opts in).
+  # Simple on/off features share this default table; options with sub-settings
+  # (defaultBrowser, hammerspoon, ...) declare their own blocks further down.
   defaults = {
     atlassian = false;
     hammerspoon = isDarwin;
@@ -83,9 +97,13 @@ in
         description = "Play a short blip on Cmd+C / Cmd+V (needs Accessibility permission).";
       };
 
-      # React to external volumes mounting/unmounting. The other half of the
-      # same replug is hn.staleCwdRecovery, which repairs each shell's cwd --
-      # only the shell itself can do that, so the two are not interchangeable.
+      # React to external volumes mounting/unmounting.
+      #
+      # This is one half of handling a replug: a daemon can notice the event and
+      # re-bind things that reference the mount. It canNOT repair a shell whose
+      # cwd died with the volume — a cwd is a live per-process reference and
+      # only that process's own chdir(2) re-resolves it. That half is
+      # hn.staleCwdRecovery, so the two are complementary, not alternatives.
       volumeWatch = {
         enable = mkOption {
           type = types.bool;
@@ -116,8 +134,13 @@ in
         };
       };
 
-      # Make Hammerspoon the system http/https handler and dispatch links to a
-      # real browser by hostname. Sets hn.defaultBrowser.handler by default.
+      # Make Hammerspoon the system http/https handler and dispatch each link to
+      # a real browser by hostname — macOS allows exactly one default browser,
+      # and this turns that single choice into a routing decision.
+      #
+      # Enabling this points hn.defaultBrowser at Hammerspoon (mkDefault, so a
+      # host can still override). Consequence: links only open while
+      # Hammerspoon is running, which is why autoLaunch matters above.
       urlRouter = {
         enable = mkOption {
           type = types.bool;

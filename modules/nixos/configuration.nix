@@ -11,7 +11,9 @@
 { pkgs, userConfig, ... }:
 
 {
-  # Flakes + trust the admin user (mirrors darwin/nix-settings.nix).
+  # Same policy as modules/darwin/nix-settings.nix, different spellings. Keep
+  # the two in step — divergence here is how the hosts start behaving
+  # differently for reasons nobody remembers.
   nix.settings = {
     experimental-features = [
       "nix-command"
@@ -20,7 +22,8 @@
     trusted-users = [ userConfig.username ];
   };
 
-  # Garbage collection + store dedup (NixOS spelling; darwin uses a launchd interval).
+  # Weekly GC + store dedup, matching the darwin side. systemd calendar events
+  # here where darwin uses a launchd interval.
   nix.gc = {
     automatic = true;
     dates = "weekly";
@@ -28,14 +31,19 @@
   };
   nix.optimise.automatic = true;
 
-  # zsh is configured by home-manager; NixOS needs it enabled system-wide to be
-  # a valid login shell. The OrbStack-defined user has `useDefaultShell = true`,
-  # so switching the default shell (rather than redefining the user) avoids a
-  # conflict with that read-only user definition.
+  # home-manager writes the zsh CONFIG, but NixOS still has to bless zsh as a
+  # login shell (it must appear in /etc/shells) before it can be one.
+  #
+  # The shell is set via users.defaultUserShell rather than on the user, because
+  # the OrbStack-generated config already defines kod_admin with
+  # `useDefaultShell = true`. Redefining that user here would conflict with a
+  # file we do not hand-edit; moving the default instead sidesteps it.
   programs.zsh.enable = true;
   users.defaultUserShell = pkgs.zsh;
 
-  # Lean system-level toolchain; language runtimes come via mise + home-manager.
+  # Only what has to exist before a user profile does, or what mise needs to
+  # build a tool from source. Language runtimes themselves come from mise
+  # (modules/home-shared/programs/mise.nix), not from here.
   environment.systemPackages = with pkgs; [
     git
     curl
@@ -44,9 +52,13 @@
     python3 # mise's node plugin needs it if it ever falls back to source builds
   ];
 
-  # Run foreign prebuilt binaries (mise-installed JDKs, node, pnpm, ...) on
-  # NixOS: provides the /lib ld-linux interpreter shim they link against.
-  # Without this every mise tool fails with "No such file or directory".
+  # Load-bearing for mise on NixOS. mise downloads PREBUILT binaries, which are
+  # linked against /lib64/ld-linux-*.so — a path NixOS does not have. nix-ld
+  # provides that interpreter shim.
+  #
+  # Without it every mise-installed JDK, node and pnpm fails with "No such file
+  # or directory", naming a file that plainly exists — one of the more
+  # misleading errors on NixOS.
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
     zlib # JDKs and node dlopen libz at runtime

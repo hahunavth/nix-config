@@ -1,4 +1,10 @@
 # Recover the shell's working directory after an external volume is replugged.
+# Gated behind hn.staleCwdRecovery; macOS-only, hence this layer.
+#
+# One of three modules covering the same event from different angles, because no
+# single one of them can do the others' job: hn.hammerspoon.volumeWatch notices
+# the mount and re-binds things that reference it, Service Station's Finder
+# extension is reloaded from there, and THIS repairs each interactive shell.
 #
 # Why this exists: a process's cwd is a live reference to a directory, not a
 # path string. Unplugging /Volumes/ext_ssd invalidates that reference, and every

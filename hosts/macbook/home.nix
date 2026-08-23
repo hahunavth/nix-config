@@ -1,6 +1,16 @@
 # Work Mac — host-specific home config (on top of the shared core).
 # Feature toggles this machine wants; hammerspoon/defaultBrowser default on for
 # macOS (see modules/home-shared/features.nix). Add host-only user packages here too.
+# Layer 4 of 4 — the work Mac's own HOME config.
+#
+# Mostly a list of which hn.* features this machine opts into; the options
+# themselves are declared in modules/home-shared/features.nix. Reading top to
+# bottom should say what is different about this machine.
+#
+# Three of the toggles below are one story: unplugging the external SSD breaks a
+# Finder extension, every shell sitting on the drive, and nothing announces it.
+# volumeWatch handles the first, hn.staleCwdRecovery the second, and the toast
+# the third — they are complementary, not alternatives.
 { ... }:
 
 {

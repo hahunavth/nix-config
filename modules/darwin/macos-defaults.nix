@@ -14,7 +14,8 @@
 { ... }:
 
 {
-  # Finder settings
+  # Finder. Mostly about seeing what is actually there — extensions, hidden
+  # files, the real POSIX path — rather than the curated view Finder ships with.
   system.defaults.finder = {
     AppleShowAllExtensions = true;
     AppleShowAllFiles = true;
@@ -29,7 +30,8 @@
     QuitMenuItem = true; # allow ⌘Q to quit Finder
   };
 
-  # Dock settings
+  # Dock. Kept visible and non-animated: autohide trades a sliver of screen for
+  # a delay on every reach, and launchanim delays the thing you just clicked.
   system.defaults.dock = {
     autohide = false;
     show-recents = true;
@@ -39,26 +41,42 @@
     orientation = "bottom";
     mineffect = "genie";
     launchanim = false;
-    mru-spaces = false; # stop auto-reordering Spaces
+    # Spaces stay in the order you put them in. With this on, macOS reorders by
+    # recent use and a Space's position — the thing muscle memory targets —
+    # changes under you.
+    mru-spaces = false;
   };
 
-  # Click wallpaper to reveal desktop ("Always", not only in Stage Manager)
+  # Click the wallpaper to reveal the desktop. Sonoma made this Stage-Manager-only
+  # by default, which makes it feel broken the rest of the time; this is the
+  # "Always" setting.
   system.defaults.WindowManager.EnableStandardClickToShowDesktop = true;
 
-  # Control Center / menu bar
+  # Menu bar / Control Center. Most of these have no typed nix-darwin option and
+  # would need CustomUserPreferences; only the ones that do are set.
   system.defaults.controlcenter = {
     BatteryShowPercentage = true;
     # Bluetooth = true;               # show Bluetooth in menu bar
     # Sound = true;                   # show Sound in menu bar
   };
 
-  # Stop .DS_Store litter on network/USB — via CustomUserPreferences
+  # No .DS_Store on network shares or USB/external volumes. Worth it beyond
+  # tidiness: those files travel to other people's machines and into archives,
+  # and on the external SSD they are pure noise. Local disks still get them —
+  # Finder needs somewhere to keep per-folder view state.
+  #
+  # No typed option exists, so this goes through CustomUserPreferences, which
+  # writes the domain's plist keys directly.
   system.defaults.CustomUserPreferences."com.apple.desktopservices" = {
     DSDontWriteNetworkStores = true;
     DSDontWriteUSBStores = true;
   };
 
-  system.defaults.LaunchServices.LSQuarantine = false; # no "are you sure you want to open?" on downloads
+  # Drop the "downloaded from the internet, are you sure?" prompt. This is the
+  # first-open nag, NOT Gatekeeper signature checking, which still applies. Note
+  # modules/darwin/homebrew/default.nix explains why the cask-side equivalent of
+  # this must not be set.
+  system.defaults.LaunchServices.LSQuarantine = false;
   # system.defaults.loginwindow.GuestEnabled = false;
   # system.startup.chime = false;                          # mute boot chime
 }

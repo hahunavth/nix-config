@@ -35,36 +35,120 @@ in
 {
   options.hn = {
     atlassian.enable = mkFeature "atlassian" "Atlassian Plugin SDK + branch-based mise/Java switching (work tooling).";
-    hammerspoon.enable = mkFeature "hammerspoon" "Hammerspoon copy/paste sounds (macOS only).";
-    defaultBrowser.enable = mkFeature "defaultBrowser" "Set Arc as the default browser on activation (macOS only).";
     homelabTunnel.enable = mkFeature "homelabTunnel" "socat port-forward aliases to the homelab over Tailscale (work).";
     secrets.enable = mkFeature "secrets" "sops-nix age-encrypted secrets (requires an age key on the machine).";
     atuin.enable = mkFeature "atuin" "Atuin shell-history (Ctrl-R search + optional cross-machine sync).";
 
-    # Reload the Service Station Finder Sync extension when a watched external
-    # volume (re)mounts (macOS only). Consumed by
-    # modules/darwin/home/service-station-reload.nix.
-    serviceStationReload = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Reload Service Station's Finder extension when a watched volume remounts (macOS only).";
-      };
-      volumes = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-        example = [ "/Volumes/ext_ssd" ];
-        description = "Mount-point paths to watch; on (re)mount the Finder extension is reloaded so its menu re-binds.";
-      };
-      extensionId = mkOption {
+    # Per-user LaunchServices default handler for http/https (macOS only).
+    # Consumed by modules/darwin/home/default-browser.nix.
+    defaultBrowser = {
+      enable = mkFeature "defaultBrowser" "Set the default browser on activation (macOS only).";
+      handler = mkOption {
         type = types.str;
-        default = "com.knurling.ServiceStation.FinderSync";
-        description = "Bundle identifier of the Finder Sync extension to reload via pluginkit.";
+        default = "browser";
+        example = "hammerspoon";
+        description = ''
+          Handler to pass to defaultbrowser(1) — the short name it prints, not a
+          bundle id. Arc's is "browser" (bundle company.thebrowser.Browser). Run
+          `defaultbrowser` with no arguments to list the registered handlers.
+        '';
       };
-      restartFinder = mkOption {
+      app = mkOption {
+        type = types.str;
+        default = "/Applications/Arc.app";
+        description = "Guard: the handler is only set if this app bundle exists, so a fresh machine doesn't get a broken default.";
+      };
+    };
+
+    # Hammerspoon: Lua automation for event-driven macOS behaviour (macOS only).
+    # Consumed by modules/darwin/home/hammerspoon.nix.
+    hammerspoon = {
+      enable = mkFeature "hammerspoon" "Hammerspoon Lua automation (macOS only).";
+
+      autoLaunch = mkOption {
         type = types.bool;
         default = true;
-        description = "Also relaunch Finder after reloading the extension (restores windows; aborts any in-progress Finder copy).";
+        description = "Start Hammerspoon at login (hs.autoLaunch). Effectively required once it handles URLs or watches volumes.";
+      };
+
+      autoReload = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Reload Hammerspoon when ~/.hammerspoon/*.lua changes — without it, a rebuild's new config only takes effect on a manual reload.";
+      };
+
+      clipboardSounds.enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Play a short blip on Cmd+C / Cmd+V (needs Accessibility permission).";
+      };
+
+      # React to external volumes mounting/unmounting. The other half of the
+      # same replug is hn.staleCwdRecovery, which repairs each shell's cwd --
+      # only the shell itself can do that, so the two are not interchangeable.
+      volumeWatch = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Watch the volumes below and react when they mount or unmount (macOS only).";
+        };
+        volumes = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          example = [ "/Volumes/ext_ssd" ];
+          description = "Mount-point paths to react to; any other volume event is ignored.";
+        };
+        notify = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Show an on-screen alert when a watched volume mounts or ejects.";
+        };
+        onMount = mkOption {
+          type = types.lines;
+          default = "";
+          example = "/usr/bin/pluginkit -e use -i com.knurling.ServiceStation.FinderSync";
+          description = "Shell run via /bin/sh -c when a watched volume mounts. Runs async; a non-zero exit is logged to the Hammerspoon console.";
+        };
+        onUnmount = mkOption {
+          type = types.lines;
+          default = "";
+          description = "Shell run via /bin/sh -c when a watched volume unmounts.";
+        };
+      };
+
+      # Make Hammerspoon the system http/https handler and dispatch links to a
+      # real browser by hostname. Sets hn.defaultBrowser.handler by default.
+      urlRouter = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Route opened links to a browser chosen by hostname (macOS only).";
+        };
+        fallback = mkOption {
+          type = types.str;
+          default = "company.thebrowser.Browser";
+          description = "Bundle id of the browser for anything no rule matches. Also restored as the system handler when Hammerspoon quits.";
+        };
+        rules = mkOption {
+          type = types.listOf (
+            types.submodule {
+              options = {
+                hosts = mkOption {
+                  type = types.listOf types.str;
+                  example = [ "^localhost$" ];
+                  description = "Lua patterns matched against the lowercased hostname (no scheme, no port).";
+                };
+                bundleId = mkOption {
+                  type = types.str;
+                  example = "com.google.Chrome";
+                  description = "Bundle id of the browser to open a matching URL in.";
+                };
+              };
+            }
+          );
+          default = [ ];
+          description = "Host-pattern → browser rules, matched in order; the first match wins, otherwise `fallback`.";
+        };
       };
     };
 

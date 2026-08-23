@@ -1,12 +1,31 @@
 { lib, ... }:
 
 let
-  # Nerd Font glyphs by codepoint. They MUST be written as JSON \u escapes and
+  # Nerd Font glyph from a hex codepoint. They MUST be written as codepoints and
   # decoded via fromJSON: literal private-use-area characters do not survive the
   # tooling that edits this file (they were silently stripped before, which is
   # why the prompt rendered as flat colored blocks with no separators at all).
   # Verified present in nerd-fonts.jetbrains-mono (modules/darwin/fonts.nix).
-  g = cp: builtins.fromJSON ''"\u${cp}"'';
+  #
+  # A JSON \u escape is exactly 4 hex digits, so codepoints above U+FFFF — the
+  # whole Material Design (md-*) set, which Nerd Fonts places at U+F0000+, i.e.
+  # ~6900 of the font's ~11800 glyphs — have to be emitted as a UTF-16 surrogate
+  # PAIR inside a single fromJSON call. Without the pair branch this failed
+  # SILENTLY: `g "f150E"` decoded U+F150 and left a literal "E" in the prompt.
+  g =
+    cp:
+    let
+      n = lib.fromHexString cp;
+      hex4 = v: lib.toLower (lib.fixedWidthString 4 "0" (lib.toHexString v));
+      one = v: builtins.fromJSON ''"\u${hex4 v}"'';
+      pair =
+        v:
+        let
+          o = v - 65536;
+        in
+        builtins.fromJSON ''"\u${hex4 (55296 + (o / 1024))}\u${hex4 (56320 + (lib.mod o 1024))}"'';
+    in
+    if n <= 65535 then one n else pair n;
 
   sep = g "e0b0"; # hard right-pointing separator / tail (U+E0B0)
 
@@ -18,6 +37,7 @@ let
     package = g "f487"; # package
     docker = g "e7b0"; # Docker
     nix = g "f313"; # Nix snowflake
+    conda = g "e715"; # dev-anaconda - conda environment
     lock = g "f023"; # read-only directory
   };
 
@@ -49,7 +69,7 @@ in
         "[${sep}](fg:${dirBg} bg:${gitBg})" # cwd -> git
         "$git_branch$git_status"
         "[${sep}](fg:${gitBg} bg:${envBg})" # git -> env
-        "$nodejs$java$python$package"
+        "$nodejs$java$python$conda$package"
         "\${custom.atlassian_sdk}"
         "$docker_context$nix_shell"
         "[${sep}](fg:${envBg})" # tail
@@ -82,7 +102,20 @@ in
       };
       python = {
         symbol = "${icon.python} ";
-        format = "[ $symbol](fg:117 bg:${envBg})[$version ](fg:${dim} bg:${envBg})";
+        # Without this the module only triggers in directories that LOOK like a
+        # Python project (.py, pyproject.toml, ...), so a venv activated and then
+        # used anywhere else was invisible.
+        detect_env_vars = [ "VIRTUAL_ENV" ];
+        # \( \) are literal parens; the ( ) around them is starship's
+        # conditional group, so a plain interpreter prints no empty "()".
+        format = "[ $symbol](fg:117 bg:${envBg})[$version ](fg:${dim} bg:${envBg})[(\\($virtualenv\\) )](fg:${dim} bg:${envBg})";
+      };
+
+      # Conda environment. `base` stays hidden (ignore_base defaults true), so an
+      # un-activated shell renders nothing.
+      conda = {
+        symbol = "${icon.conda} ";
+        format = "[ $symbol](fg:149 bg:${envBg})[$environment ](fg:${dim} bg:${envBg})";
       };
       package = {
         symbol = "${icon.package} ";

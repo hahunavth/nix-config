@@ -3,6 +3,14 @@
 {
   programs.git = {
     enable = true;
+
+    # Git LFS: installs git-lfs and writes the filter.lfs clean/smudge/process
+    # config into ~/.config/git/config, which is exactly what `git lfs install`
+    # does by hand -- so do NOT run that (it would try to write the same keys and
+    # the generated config is read-only anyway). Per-repo setup is unchanged:
+    # `git lfs track "*.psd"` in the repo, then commit the .gitattributes.
+    lfs.enable = true;
+
     settings = {
       user = {
         name = userConfig.githubUsername;

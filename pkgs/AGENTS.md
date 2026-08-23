@@ -3,7 +3,6 @@
 Custom package derivations that aren't in (or are pinned outside) nixpkgs.
 
 ```
-raycast-beta/default.nix          # Raycast Beta, fetchurl-pinned
 atlassian-plugin-sdk/default.nix  # both SDK versions, fetchurl-pinned
 ```
 

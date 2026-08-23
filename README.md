@@ -105,7 +105,7 @@ Note: flakes only see files tracked by git — after adding new files, run
 ```
 nix fmt              # treefmt (nixfmt), skips generated trees
 nix run nixpkgs#statix -- check .   # lint (config in statix.toml)
-nix build .#checks.aarch64-darwin.raycast-beta   # validate a pinned package
+nix build .#checks.aarch64-darwin.atlassian-plugin-sdk-9_1_1   # validate a pinned package
 ```
 
 CI (`.github/workflows/check.yml`) runs format + lint + evaluates every host +

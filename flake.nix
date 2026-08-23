@@ -87,7 +87,7 @@
       };
 
       # Custom packages (pkgs/), exported per system. Build one with
-      # `nix build .#raycast-beta`.
+      # `nix build .#atlassian-plugin-sdk-9_1_1`.
       packages = forAllSystems (pkgs: import ./pkgs { inherit pkgs; });
 
       # `nix flake check` builds these, so a rotted fetchurl URL/hash fails loudly

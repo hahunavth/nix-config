@@ -26,7 +26,7 @@ modules/
   darwin/                 # macOS platform layer; homebrew/ (nix-homebrew + shared cask base),
                           #   home/ (macOS-only home modules), linux-builder (on by default)
   nixos/                  # NixOS platform layer; orbstack/ is GENERATED — do NOT hand-edit
-pkgs/                     # custom packages (raycast-beta, atlassian-plugin-sdk)
+pkgs/                     # custom packages (atlassian-plugin-sdk, Linux .deb repacks)
 shells/                   # dev shells: nix develop .#default|atlassian|node|python
 secrets/                  # sops-nix scaffold; inert until a host sets hn.secrets.enable
 .claude/commands/         # repo slash commands: /build /rebuild /add-host /add-cask

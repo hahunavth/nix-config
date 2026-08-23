@@ -8,7 +8,6 @@
     ./linux-builder.nix
     ./fonts.nix
     ./macos-defaults.nix
-    ./raycast-beta.nix
     ./homebrew
   ];
 }

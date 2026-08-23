@@ -20,13 +20,6 @@ in
     hash = "sha256-sEAe1eif9qXvIOu8RfZ4MWngEO5yCjU74g4Crd85J3Y=";
   };
 }
-# Raycast Beta is a macOS-only arm64 DMG; only expose it on Darwin.
-// lib.optionalAttrs pkgs.stdenv.isDarwin {
-  raycast-beta = import ./raycast-beta {
-    inherit pkgs;
-    inherit (pkgs) lib;
-  };
-}
 # Repackaged amd64 Linux .deb GUI apps (x86_64-linux only).
 // lib.optionalAttrs (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
   claude-desktop = pkgs.callPackage ./claude-desktop { };

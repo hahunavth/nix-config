@@ -8,7 +8,7 @@
 
     # macOS-only modules
     ./default-browser.nix # per-user LaunchServices default browser
-    ./hammerspoon.nix # Lua automation (copy/paste sounds)
+    ./hammerspoon.nix # Lua automation: URL routing, volume watch, clipboard sounds
     ./stale-cwd.nix # re-enter the cwd after a volume remount (hn.staleCwdRecovery)
     ./conda.nix # miniconda shell init (macOS Homebrew cask)
     ./login-shell.nix # ~/.zprofile: Homebrew shellenv + OrbStack init

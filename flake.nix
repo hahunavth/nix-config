@@ -17,7 +17,7 @@
     # Declarative management of the Homebrew installation itself
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
 
-    # Secrets management (age-encrypted; see home-manager/modules/secrets.nix).
+    # Secrets management (age-encrypted; see modules/home-shared/programs/secrets.nix).
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 

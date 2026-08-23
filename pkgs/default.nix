@@ -1,7 +1,7 @@
 # Aggregated custom packages, exported by the flake's `packages` output and
 # built by `checks` (so `nix flake check` catches a rotted URL/hash). Also the
 # single source of the Atlassian SDK version pins (consumed by
-# home-manager/modules/atlassian-sdk.nix).
+# modules/home-shared/programs/atlassian-sdk.nix).
 { pkgs }:
 let
   inherit (pkgs) lib;

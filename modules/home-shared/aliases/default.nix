@@ -1,5 +1,5 @@
 # Shell aliases, split by domain (merged into programs.zsh.shellAliases by
-# modules/zsh.nix). Add new alias groups as files here.
+# programs/zsh.nix). Add new alias groups as files here.
 {
   lib,
   pkgs,

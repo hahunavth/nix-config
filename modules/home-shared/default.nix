@@ -1,9 +1,10 @@
 # Shared home-manager environment: the cross-platform "shared core" that runs on
 # every host. Platform entry points import this and add their own extras:
-#   modules/darwin/home -> this + default-browser + hammerspoon
+#   modules/darwin/home -> this + default-browser, hammerspoon, conda,
+#                          login-shell, stale-cwd
 #   modules/nixos/home  -> this (+ future Linux-only modules)
-# User identity (username, homeDirectory, stateVersion) is set by the flake from
-# the validated host entry.
+# User identity (username, homeDirectory, stateVersion) comes from the global
+# `identity` in flake.nix, applied by lib/mk-home.nix.
 { ... }:
 
 {

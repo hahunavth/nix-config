@@ -6,7 +6,7 @@ Decide *what kind* of thing it is first (see the decision diagram in the README)
 
 Add the cask to the right list under `modules/darwin/homebrew/casks/`:
 
-- shared across all profiles → `apps.nix` / `development.nix` / `system.nix`
+- shared across every macOS host → `apps.nix` / `development.nix` / `system.nix`
 - one machine only → `homebrew.casks` in `hosts/<name>/default.nix`
 
 `onActivation.cleanup = "zap"` uninstalls anything not listed, so adding the line

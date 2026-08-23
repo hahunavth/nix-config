@@ -1,4 +1,4 @@
-# System utilities (all profiles).
+# System utilities — every macOS host.
 [
   "tailscale-app" # Tailscale mesh VPN (GUI + menu-bar app)
   "input-source-pro" # Auto-switch keyboard input source per app/site

@@ -1,4 +1,4 @@
-# Development tools (all profiles).
+# Development tools — every macOS host.
 [
   "claude" # Claude desktop app
   "claude-code@latest" # Claude Code CLI

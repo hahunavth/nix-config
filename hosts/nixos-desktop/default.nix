@@ -1,5 +1,5 @@
-# nixos-desktop — x86_64 GUI VM (GNOME) running under VirtualBox. This host owns
-# its system config: hardware, boot, user, locale, services. The shared NixOS base
+# nixos-desktop — x86_64 GUI VM (XFCE on Xorg) running under VirtualBox. This host
+# owns its system config: hardware, boot, user, locale, services. The shared NixOS base
 # (../../modules/nixos) is added by lib/mk-system.nix; the reusable GUI layer is
 # ../../modules/nixos/desktop. hardware-configuration.nix is generated on the VM
 # (docs/runbooks/add-nixos-host.md).
@@ -15,7 +15,7 @@
 
   imports = [
     ./hardware-configuration.nix # generated on the VM
-    ../../modules/nixos/desktop # GNOME + VM guest tools
+    ../../modules/nixos/desktop # XFCE + VM guest tools
   ];
 
   # BIOS/legacy boot via GRUB on the VirtualBox disk (matches the default install).

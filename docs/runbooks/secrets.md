@@ -4,7 +4,7 @@ Replaces "copy the SSH key files from the old machine" with a single age key.
 
 Status: **scaffolded, not yet enabled.** The wiring exists (`sops-nix` input, the
 `sops` home-manager module, `modules/home-shared/programs/secrets.nix`, `secrets/.sops.yaml`)
-but `features.secrets` is off everywhere until you complete the steps below. This
+but `hn.secrets.enable` is off everywhere until you complete the steps below. This
 is the one phase that needs a human — it requires your private key and your real
 secret material.
 

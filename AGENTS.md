@@ -6,7 +6,7 @@ macOS + NixOS system configuration: [nix-darwin](https://github.com/nix-darwin/n
 [home-manager](https://github.com/nix-community/home-manager), Nix Flakes.
 
 - Host `KOD-ADMINs-MacBook-Pro` — Apple Silicon work Mac, user `kod_admin`
-- Host `nixos` — headless OrbStack dev VM (`aarch64-linux`); host `nixos-desktop` — `x86_64-linux` GNOME VM
+- Host `nixos` — headless OrbStack dev VM (`aarch64-linux`); host `nixos-desktop` — `x86_64-linux` XFCE VM
 - Repo lives at `/etc/nix-darwin` (user-owned, no sudo to edit); inside the OrbStack VM the same
   checkout is mounted at `/private/etc/nix-darwin`
 

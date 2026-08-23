@@ -1,10 +1,13 @@
-# Our declarative system layer for the OrbStack NixOS dev VM.
+# Hand-maintained NixOS base, applied to EVERY Linux host — lib/mk-system.nix
+# adds modules/nixos to both `nixos` (OrbStack VM) and `nixos-desktop`. So keep
+# only cross-host settings here; anything that suits one machine belongs in its
+# hosts/<name>/default.nix.
 #
-# The OrbStack guest integration (bootless lxc-container base, the kod_admin
-# user, hostname, timezone, sshd-disabled, DNS, certs, stateVersion) lives in
-# ./orbstack/ — those files are copied verbatim from the VM's /etc/nixos and
-# should be re-synced (diffed) if OrbStack regenerates them. Keep THIS file for
-# everything we add on top.
+# Not to be confused with ./orbstack/, which is the OrbStack guest integration
+# (bootless lxc-container base, the kod_admin user, hostname, timezone,
+# sshd-disabled, DNS, certs, stateVersion). Those files are copied verbatim from
+# the VM's /etc/nixos, are imported only by hosts/nixos, and should be re-synced
+# (and diffed) if OrbStack regenerates them.
 { pkgs, userConfig, ... }:
 
 {

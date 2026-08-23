@@ -3,8 +3,15 @@
 Custom package derivations that aren't in (or are pinned outside) nixpkgs.
 
 ```
-atlassian-plugin-sdk/default.nix  # both SDK versions, fetchurl-pinned
+default.nix                       # aggregator -> flake `packages` + `checks`
+atlassian-plugin-sdk/default.nix  # builder; both versions pinned in default.nix
+claude-desktop/default.nix        # repack of Anthropic's official Linux .deb
+opencode-desktop/default.nix      # repack of the upstream OpenCode .deb
 ```
+
+The two `.deb` repacks are **x86_64-linux only** (for the `nixos-desktop` VM) and
+are guarded behind a platform check in `default.nix`, so they never evaluate on
+the Mac.
 
 ## Conventions
 

@@ -9,7 +9,7 @@
 # To turn it on for a host:
 #   1. Generate a key and add its PUBLIC recipient to secrets/.sops.yaml.
 #   2. Create + encrypt secrets/secrets.yaml (`sops secrets/secrets.yaml`).
-#   3. Set `features.secrets = true;` in the host's hosts/<host>.nix.
+#   3. Set `hn.secrets.enable = true;` in the host's hosts/<name>/home.nix.
 #   4. Uncomment the secret entries below for the material you store.
 { config, lib, ... }:
 let

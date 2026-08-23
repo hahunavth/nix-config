@@ -16,9 +16,11 @@
   services.xserver.desktopManager.xfce.enable = true;
   services.displayManager.defaultSession = "xfce";
 
-  # VM guest integration. Default = QEMU/KVM/SPICE (clipboard + display
-  # auto-resize). For a different hypervisor swap these for
-  # `virtualisation.vmware.guest.enable` or `virtualisation.virtualbox.guest.enable`.
+  # VM guest integration for QEMU/KVM/SPICE (clipboard + display auto-resize).
+  # Harmless where unused: nixos-desktop runs under VirtualBox and gets
+  # `virtualisation.virtualbox.guest.enable` from its GENERATED
+  # hardware-configuration.nix, so these two just sit inert there. Add
+  # `virtualisation.vmware.guest.enable` per host if a VMware host ever shows up.
   services.qemuGuest.enable = true;
   services.spice-vdagentd.enable = true;
 

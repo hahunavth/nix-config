@@ -54,7 +54,7 @@ Nested `AGENTS.md` files document the non-obvious directories (`hosts/`, `lib/`,
 - **New machine** → `hosts/<name>/{default.nix,home.nix}` + list it in `flake.nix`
   (see docs/runbooks/add-a-host.md)
 
-Feature-flag defaults: `hammerspoon` + `defaultBrowser` on for macOS; `atlassian`, `winTunnel`,
+Feature-flag defaults: `hammerspoon` + `defaultBrowser` on for macOS; `atlassian`, `homelabTunnel`,
 `secrets`, `atuin` off — a host opts in. `nix.linux-builder` is on by default (darwin);
 a host may disable it.
 

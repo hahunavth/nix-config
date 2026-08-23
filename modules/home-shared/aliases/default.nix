@@ -3,10 +3,10 @@
 {
   lib,
   pkgs,
-  winTunnel ? true,
+  homelabTunnel ? true,
 }:
 let
   coreAliases = import ./core.nix { inherit pkgs; };
-  winTunnelAliases = if winTunnel then import ./win-tunnel.nix { inherit lib; } else { };
+  homelabTunnelAliases = if homelabTunnel then import ./homelab-tunnel.nix { inherit lib; } else { };
 in
-coreAliases // winTunnelAliases
+coreAliases // homelabTunnelAliases

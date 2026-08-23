@@ -19,7 +19,7 @@ let
     atlassian = false;
     hammerspoon = isDarwin;
     defaultBrowser = isDarwin;
-    winTunnel = false;
+    homelabTunnel = false;
     secrets = false;
     atuin = false;
   };
@@ -37,7 +37,7 @@ in
     atlassian.enable = mkFeature "atlassian" "Atlassian Plugin SDK + branch-based mise/Java switching (work tooling).";
     hammerspoon.enable = mkFeature "hammerspoon" "Hammerspoon copy/paste sounds (macOS only).";
     defaultBrowser.enable = mkFeature "defaultBrowser" "Set Arc as the default browser on activation (macOS only).";
-    winTunnel.enable = mkFeature "winTunnel" "socat port-forward aliases to the Windows box (work).";
+    homelabTunnel.enable = mkFeature "homelabTunnel" "socat port-forward aliases to the homelab over Tailscale (work).";
     secrets.enable = mkFeature "secrets" "sops-nix age-encrypted secrets (requires an age key on the machine).";
     atuin.enable = mkFeature "atuin" "Atuin shell-history (Ctrl-R search + optional cross-machine sync).";
 

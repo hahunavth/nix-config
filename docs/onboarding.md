@@ -27,8 +27,8 @@ its config) plus one line in `flake.nix` — see [runbooks/add-a-host.md](runboo
 | command | what it does |
 |---|---|
 | `rebuild` | `sudo darwin-rebuild switch --flake /etc/nix-darwin` |
-| `win-on` / `win-off` / `win-status` | socat port forwards to the Windows box |
-| `win-5005` / `win-5006` | switch local 5005 between remote 5005 / 5006 |
+| `hl-on` / `hl-off` / `hl-status` | socat port forwards to the Windows box |
+| `hl-5005` / `hl-5006` | switch local 5005 between remote 5005 / 5006 |
 | `mise install` | fetch the tool versions for the current project |
 | `atlas-mise-enable` | enable branch-based Java/SDK switching in a plugin repo |
 

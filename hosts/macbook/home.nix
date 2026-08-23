@@ -5,7 +5,7 @@
 
 {
   hn.atlassian.enable = true; # Atlassian Plugin SDK + branch-based mise switching
-  hn.winTunnel.enable = true; # socat port-forwards to the Windows box
+  hn.homelabTunnel.enable = true; # socat port-forwards to the homelab (hl-* aliases)
 
   # Docker CLI with no local engine: the homelab (Windows box, Docker Desktop) is
   # reached over Tailscale through the `homelab-tailscale` ssh host, and is the

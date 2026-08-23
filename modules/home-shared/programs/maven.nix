@@ -1,3 +1,10 @@
+# Maven — DELIBERATELY A NO-OP. This module sets nothing; it exists to record
+# the two decisions below so they are not re-litigated, and to hold the
+# MAVEN_OPTS escape hatch ready to uncomment.
+#
+# Maven itself comes from the Atlassian SDK (atlas-mvn) or from
+# `nix develop .#atlassian`, which sets MAVEN_OPTS in the shell instead.
+#
 # NOTE: re-add `config` to the lambda pattern if the MAVEN_OPTS line below is
 # ever uncommented (it references config.home.homeDirectory).
 { ... }:

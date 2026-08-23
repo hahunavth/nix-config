@@ -3,8 +3,9 @@
 # Anthropic ships a first-party Linux beta (amd64/arm64) via their APT repo
 # (https://downloads.claude.ai/claude-desktop/apt/stable). NixOS can't consume a
 # .deb directly, so we fetch the pinned amd64 .deb, unpack it, autoPatchelf the
-# bundled Electron binary against the Nix runtime libs its Debian `Depends` name,
-# and wrap the launcher. The app.asar is used byte-identical — nothing is rebuilt.
+# bundled Electron binary against the Nix equivalents of the libraries its Debian
+# `Depends` names, and wrap the launcher. The app.asar is used byte-identical —
+# nothing is rebuilt.
 #
 # Update: bump `version`, refetch, and paste the new hash Nix reports. The
 # pool/ index lives at .../apt/stable/dists/stable/main/binary-amd64/Packages.

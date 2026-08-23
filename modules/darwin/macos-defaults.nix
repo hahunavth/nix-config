@@ -1,3 +1,16 @@
+# macOS user defaults (the `defaults write` surface, declared).
+#
+# TIMING: a rebuild writes the plist, but a RUNNING process only rereads it at
+# login. Dock/Finder/WindowManager and input-source changes therefore need a
+# logout or restart before they show up — a switch that "did nothing" is
+# usually this, not a broken option.
+#
+# NEVER declare `AppleEnabledInputSources` via CustomUserPreferences: it
+# replaces the whole list and would wipe the manually configured ABC +
+# Vietnamese (Telex) + Japanese (Kotoeri) input methods.
+#
+# No typed nix-darwin option for a setting? Use
+# `system.defaults.CustomUserPreferences."<domain>"` (see the .DS_Store block).
 { ... }:
 
 {
@@ -48,5 +61,4 @@
   system.defaults.LaunchServices.LSQuarantine = false; # no "are you sure you want to open?" on downloads
   # system.defaults.loginwindow.GuestEnabled = false;
   # system.startup.chime = false;                          # mute boot chime
-
 }

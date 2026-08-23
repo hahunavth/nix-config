@@ -1,5 +1,8 @@
-# treefmt config powering `nix fmt`. Formats Nix with nixfmt-rfc-style, and
-# excludes generated/vendored trees so `nix fmt` never rewrites them.
+# treefmt config powering `nix fmt`. nixfmt is the only formatter wired up, so
+# the excludes below are two different things: the generated/vendored TREES
+# (which must stay byte-identical for re-sync diffs) and every non-Nix file
+# extension (nothing would format them — listing them just keeps the traversal
+# quiet). Adding a formatter for one of those types means removing its line.
 {
   projectRootFile = "flake.nix";
   programs.nixfmt.enable = true;

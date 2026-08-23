@@ -1,10 +1,10 @@
 { lib, ... }:
 
 let
-  # Nerd Font glyph from a hex codepoint. They MUST be written as codepoints and
-  # decoded via fromJSON: literal private-use-area characters do not survive the
-  # tooling that edits this file (they were silently stripped before, which is
-  # why the prompt rendered as flat colored blocks with no separators at all).
+  # Nerd Font glyph from a hex codepoint. Glyphs MUST be written as codepoints
+  # and decoded via fromJSON: literal private-use-area characters do not survive
+  # the tooling that edits this file (they were silently stripped before, which
+  # is why the prompt rendered as flat colored blocks with no separators).
   # Verified present in nerd-fonts.jetbrains-mono (modules/darwin/fonts.nix).
   #
   # A JSON \u escape is exactly 4 hex digits, so codepoints above U+FFFF — the

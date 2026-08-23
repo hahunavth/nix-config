@@ -1,3 +1,13 @@
+# SSH client config (generates ~/.ssh/config).
+#
+# GOTCHA: the private keys these Host blocks reference are NOT managed by nix.
+# They are plain files copied into ~/.ssh by hand (chmod 600) — a fresh machine
+# gets a complete ~/.ssh/config that cannot authenticate until they are in
+# place. Only the .pub halves are declared here. Migrating the private halves to
+# sops-nix is what programs/secrets.nix + docs/runbooks/secrets.md are for.
+#
+# `enableDefaultConfig = false` on purpose: everything is set explicitly below
+# rather than inherited from home-manager's defaults.
 {
   pkgs,
   lib,

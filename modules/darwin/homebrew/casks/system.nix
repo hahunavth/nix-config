@@ -6,8 +6,9 @@
   "rectangle" # Window snapping / management
   "notunes" # Prevent iTunes / Apple Music from auto-launching
   "shottr" # Screenshot tool w/ annotation
-  "hammerspoon" # Lua automation; plays copy/paste sounds (see modules/hammerspoon.nix)
+  "hammerspoon" # Lua automation: URL routing, volume watch, copy/paste sounds (modules/darwin/home/hammerspoon.nix)
   "stats" # Menu-bar system monitor (network up/down speed, CPU, RAM, ...)
   "macs-fan-control" # Monitor / override fan speeds and temperature sensors
-  # "betterdisplay" # Display management: virtual/HiDPI resolutions, brightness, PiP
+  "mac-mouse-fix" # Gestures + smooth scrolling for 3rd-party mice
+  "betterdisplay" # Display management: virtual/HiDPI resolutions, brightness, PiP
 ]

@@ -29,20 +29,19 @@ in
     enable = true;
     inherit taps brews casks;
 
-    # Install casks without the com.apple.quarantine bit. Homebrew sets it by
-    # default, which makes the FIRST launch of every cask do an online Gatekeeper
-    # notarization-ticket lookup — and when that lookup can't reach Apple, macOS
-    # shows "Apple could not verify <app> is free of malware", even for a
-    # correctly signed and notarized app (hit with warp: syspolicyd logged
-    # "Error checking with notarization daemon: 3" while a broken VPN was eating
-    # the route to Apple). Dismissing that dialog writes a denial breadcrumb and
-    # keeps the flag, so it prompts again on every launch.
-    #
-    # Trade-off: this opts out of Apple's launch-time check for all casks, so the
-    # trust boundary becomes the (declared, reviewed) cask list in casks/ plus
-    # Homebrew's own cask definitions and their upstream URLs/checksums. Code
-    # signatures are still enforced; only the quarantine prompt is skipped.
-    caskArgs.no_quarantine = true;
+    # NOTE: do NOT set `caskArgs.no_quarantine` here. `brew bundle` renders
+    # caskArgs keys verbatim (`no_quarantine` -> `--no_quarantine`, an option
+    # brew never had), and Homebrew 6 dropped `--no-quarantine` from
+    # `brew install` altogether: cmd/install.rb never passes `quarantine:` to
+    # Cask::Installer, whose default is hardcoded `quarantine: true`.
+    # `HOMEBREW_CASK_OPTS="--no-quarantine"` is ignored for the same reason
+    # (EnvConfig.cask_opts_quarantine? has no callers left). Setting it doesn't
+    # just fail silently — it makes every NEW cask install abort with
+    # "Error: invalid option: --no_quarantine".
+    # If a Gatekeeper "could not verify <app>" prompt shows up again, fix the
+    # route to Apple's notarization service (a half-dead VPN daemon caused it
+    # last time) or clear the attribute per app:
+    #   xattr -dr com.apple.quarantine "/Applications/<App>.app"
 
     onActivation = {
       # Keep rebuilds offline by default: no `brew update` fetch, no upgrading

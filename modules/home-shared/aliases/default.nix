@@ -14,6 +14,7 @@
 }:
 let
   coreAliases = import ./core.nix { inherit pkgs; };
+  claudeAliases = import ./claude.nix { };
   homelabTunnelAliases = if homelabTunnel then import ./homelab-tunnel.nix { inherit lib; } else { };
 in
-coreAliases // homelabTunnelAliases
+coreAliases // claudeAliases // homelabTunnelAliases

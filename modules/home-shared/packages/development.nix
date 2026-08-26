@@ -15,5 +15,8 @@
     # nix tooling
     nil # Nix language server (LSP)
     nixfmt # Nix formatter
+    # AI coding agents. Claude Code is deliberately absent: it self-updates,
+    # which a nix-managed binary cannot do.
+    codex # OpenAI Codex CLI
   ];
 }

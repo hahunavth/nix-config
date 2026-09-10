@@ -70,4 +70,24 @@ pkgs.mkShell {
   # point it at the one in the (read-only) nix SDK instead. Standard androidenv
   # workaround — without it the build fails on a sandboxed/immutable SDK.
   GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkRoot}/build-tools/${buildToolsVersion}/aapt2";
+
+  # Xcode 27 ships its own clang with libc++ bundled for SDK 27. The Nix
+  # clang-wrapper that mkShell auto-injects into PATH hardcodes
+  # `-cxx-isystem /nix/store/.../libcxx-21.1.6+apple-sdk-26.4/include/c++/v1`
+  # and `-isysroot .../apple-sdk-14.4/.../MacOSX.sdk` — wrong SDK pairing,
+  # which is what produces "undeclared FP_NAN / uint8_t" in MMKVCore's
+  # OpenSSL TUs. Put Xcode's toolchain bin ahead of the wrapper in PATH so
+  # xcodebuild's clang lookup finds the matching toolchain.
+  shellHook = ''
+    # Nix's pkgs.clang-wrapper (auto-added by mkShell) and pkgs.apple-sdk set
+    # DEVELOPER_DIR / SDKROOT to point at the Nix apple-sdk 14.4 and force the
+    # wrapper bin first in PATH. The wrapper hardcodes -cxx-isystem to libcxx
+    # 21.1.6+apple-sdk-26.4 and -isysroot to SDK 14.4 — the wrong pairing for
+    # Xcode 27.0 (SDK 27). Clear the developer/SDK vars FIRST so xcrun falls
+    # back to the active Xcode, then prepend that toolchain bin ahead of the
+    # Nix wrapper so `clang` (and xcrun clang) resolve to a toolchain whose
+    # SDK matches what xcodebuild is targeting.
+    unset DEVELOPER_DIR SDKROOT TOOLCHAINS
+    export PATH="$(/usr/bin/xcrun --find clang | xargs dirname):$PATH"
+  '';
 }

@@ -11,4 +11,8 @@
   "warp" # Warp terminal
   "iterm2" # Terminal emulator (best Nerd Font / powerline rendering)
   "miniconda" # Python / conda data-science stack
+  "hermes-desktop" # Hermes Agent Desktop — GUI companion to the hermes-agent CLI brew
+  "devin-desktop" # Devin Desktop — GUI companion to the Cognition Devin AI engineer
+  "t3-code" # T3 Code — open-source GUI for managing AI coding agents (Codex CLI / Claude Code)
+  "stablyai/orca/orca" # Orca — IDE for orchestrating AI coding agents across terminals + worktrees (stablyai/orca tap)
 ]

@@ -1,6 +1,6 @@
 # Runbook: add a package
 
-Decide *what kind* of thing it is first (see the decision diagram in the README).
+Decide *what kind* of thing it is first (see [where-does-x-go.md](../where-does-x-go.md)).
 
 ## GUI app (macOS)
 

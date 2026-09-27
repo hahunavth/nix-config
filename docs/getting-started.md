@@ -1,8 +1,7 @@
-# Onboarding & runbook
+# Getting started
 
-Human-facing guide for setting up and living with this config. (For AI-assistant
-guidance see [`../CLAUDE.md`](../CLAUDE.md); for the layout overview see
-[`../README.md`](../README.md).)
+Setting up a machine with this config, and the few steps nix can't do. For the layout, see
+[architecture.md](architecture.md); for AI agents, see [`../AGENTS.md`](../AGENTS.md).
 
 ## Fresh machine
 
@@ -12,7 +11,7 @@ new Mac needs a one-time bootstrap:
 ```bash
 # 1. get the repo to the canonical location
 sudo mkdir -p /etc/nix-darwin && sudo chown "$USER" /etc/nix-darwin
-git clone <repo-url> /etc/nix-darwin
+git clone https://github.com/hahunavth/nix-config /etc/nix-darwin
 
 # 2. run the bootstrap (installs Xcode CLT, Homebrew, Nix, first rebuild)
 /etc/nix-darwin/scripts/bootstrap.sh
@@ -54,9 +53,4 @@ automatically uses the kodnet work email (via `programs.git.includes`). Check wi
 
 ## Troubleshooting
 
-- **Prompt shows boxes instead of icons** → terminal font isn't a Nerd Font.
-- **`atlas-version: command not found`** → it's only on PATH inside an
-  `atlas-mise-enable`d plugin repo, and needs a JDK active (via mise).
-- **`mise WARN missing: …`** → the project pins tool versions not installed; run
-  `mise install` in that repo.
-- **`--impure` demanded** → `flake.lock` must be git-tracked and user-owned.
+See [troubleshooting.md](troubleshooting.md). Each entry there is headed by the error you'll see.

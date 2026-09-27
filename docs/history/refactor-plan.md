@@ -1,9 +1,12 @@
+> **Archived.** A historical record of the 2026-07 refactor. Paths and file names below describe
+> the old layout. For the current structure, see [architecture.md](../architecture.md).
+
 # Refactor & Enhancement Plan
 
 > **Note:** after these phases the repo layout was reorganized into three layers —
 > `hosts/` (data), `lib/` (logic), `modules/{home-shared,darwin,nixos}` (building blocks).
 > Paths in this historical document reflect the *pre-reorganization* structure
-> (`darwin/`, `home-manager/`, …). See [README.md](../README.md) / [AGENTS.md](../AGENTS.md)
+> (`darwin/`, `home-manager/`, …). See [README.md](../../README.md) / [AGENTS.md](../../AGENTS.md)
 > for the current layout.
 
 Status: **Phases 0–5 implemented** (2026-07-11), each build-verified. Every phase

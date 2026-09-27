@@ -52,5 +52,5 @@ Manual one-time steps that can't be declared in nix:
   - Set your terminal font to a Nerd Font (JetBrainsMono/FiraCode Nerd Font).
   - Copy your SSH private keys into ~/.ssh and chmod 600 them.
   - Fix keyboard type (ANSI/ISO/JIS) via the Keyboard Setup Assistant if needed.
-See docs/onboarding.md for the full checklist.
+See docs/getting-started.md for the full checklist.
 EOF

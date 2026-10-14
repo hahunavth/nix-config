@@ -18,11 +18,27 @@
 #
 # $HOME reaches zsh unexpanded: nix interpolates ${...}, never $NAME, and an
 # alias is expanded at call time regardless.
+#
+# claude-z/cz is a third profile pointed at Z.ai's Claude-compatible GLM
+# endpoint instead of Anthropic. Same CLAUDE_CONFIG_DIR trick as claude-1; the
+# API redirect (ANTHROPIC_BASE_URL/ANTHROPIC_AUTH_TOKEN) and model aliasing
+# (ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL) live in ~/.claude-z/settings.json's
+# "env" block instead of here, since that file — like the rest of
+# ~/.claude-z — is outside nix and already holds the profile's credentials.
 { ... }:
 let
   secondProfile = "CLAUDE_CONFIG_DIR=$HOME/.claude-1 claude";
+  thirdProfile = "CLAUDE_CONFIG_DIR=$HOME/.claude-2 claude";
+  zProfile = "CLAUDE_CONFIG_DIR=$HOME/.claude-z claude";
+  mProfile = "CLAUDE_CONFIG_DIR=$HOME/.claude-m claude";
 in
 {
   claude-1 = secondProfile;
   c1 = secondProfile;
+  claude-2 = thirdProfile;
+  c2 = thirdProfile;
+  claude-z = zProfile;
+  cz = zProfile;
+  claude-m = mProfile;
+  cm = mProfile;
 }

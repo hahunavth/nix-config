@@ -133,46 +133,6 @@ in
           description = "Shell run via /bin/sh -c when a watched volume unmounts.";
         };
       };
-
-      # Make Hammerspoon the system http/https handler and dispatch each link to
-      # a real browser by hostname — macOS allows exactly one default browser,
-      # and this turns that single choice into a routing decision.
-      #
-      # Enabling this points hn.defaultBrowser at Hammerspoon (mkDefault, so a
-      # host can still override). Consequence: links only open while
-      # Hammerspoon is running, which is why autoLaunch matters above.
-      urlRouter = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = "Route opened links to a browser chosen by hostname (macOS only).";
-        };
-        fallback = mkOption {
-          type = types.str;
-          default = "company.thebrowser.Browser";
-          description = "Bundle id of the browser for anything no rule matches. Also restored as the system handler when Hammerspoon quits.";
-        };
-        rules = mkOption {
-          type = types.listOf (
-            types.submodule {
-              options = {
-                hosts = mkOption {
-                  type = types.listOf types.str;
-                  example = [ "^localhost$" ];
-                  description = "Lua patterns matched against the lowercased hostname (no scheme, no port).";
-                };
-                bundleId = mkOption {
-                  type = types.str;
-                  example = "com.google.Chrome";
-                  description = "Bundle id of the browser to open a matching URL in.";
-                };
-              };
-            }
-          );
-          default = [ ];
-          description = "Host-pattern → browser rules, matched in order; the first match wins, otherwise `fallback`.";
-        };
-      };
     };
 
     # Docker CLI talking to a remote engine over SSH (no local daemon).

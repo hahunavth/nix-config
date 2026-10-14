@@ -1,7 +1,8 @@
 # General-purpose GUI apps for every macOS host.
 #
-# Four browsers is deliberate, not leftovers: hn.hammerspoon.urlRouter routes
-# links between them by hostname, so each one is a routing target.
+# Four browsers is intentional, not leftovers: Arc is the system default
+# (hn.defaultBrowser.handler = "browser"), Chrome is the dev browser opened
+# by hand for devtools, Brave/Edge are around for cross-browser testing.
 [
   "arc"
   "brave-browser"

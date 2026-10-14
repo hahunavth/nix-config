@@ -6,10 +6,6 @@
 # It cannot be made fully declarative: macOS shows a confirmation dialog that
 # has to be clicked, once, in the GUI. Expect it on the first switch and after
 # any change to `handler`.
-#
-# The interesting consumer is hn.hammerspoon.urlRouter, which points `handler`
-# at Hammerspoon so links can be dispatched per hostname instead of all going
-# to one browser.
 {
   config,
   pkgs,

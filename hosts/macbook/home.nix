@@ -37,28 +37,6 @@
         /usr/bin/killall Finder
       '';
     };
-
-    # Hammerspoon becomes the system http/https handler and forwards each link:
-    # loopback to Chrome (its devtools/profiles are the dev browser), everything
-    # else to Arc. Approve the macOS "change default browser" prompt on the next
-    # switch, and note links then depend on Hammerspoon running.
-    urlRouter = {
-      enable = true;
-      fallback = "company.thebrowser.Browser"; # Arc
-      rules = [
-        {
-          hosts = [
-            "^localhost$"
-            "%.localhost$"
-            "^127%."
-            "^0%.0%.0%.0$"
-            "^::1$"
-            "^%[::1%]$"
-          ];
-          bundleId = "com.google.Chrome";
-        }
-      ];
-    };
   };
 
   # Docker CLI with no local engine: the homelab (Windows box, Docker Desktop) is

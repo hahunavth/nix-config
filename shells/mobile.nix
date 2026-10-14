@@ -26,6 +26,18 @@ let
   # and NDK 27.1.12297006; apps/expo/android/gradle.properties sets minSdk 24.
   # Bump these when the RN/Expo upgrade does, or Gradle downloads nothing and
   # simply fails (the SDK here is read-only — sdkmanager cannot fill gaps in).
+  #
+  # build-tools: BOTH versions ship, because two different requesters disagree.
+  # Expo SDK 57's `:expo` module asks for 35.0.0; RN 0.86's `:app` asks for
+  # 36.0.0. With a read-only store SDK Gradle cannot self-install whichever one
+  # is missing — it dies with "Failed to install the following SDK components".
+  # Shipping both is what actually builds. `buildToolsVersion` below is the one
+  # GRADLE_OPTS points aapt2 at.
+  # Drop 35.0.0 once Expo's module stops requesting it; drop 36.0.0 once RN does.
+  buildToolsVersions = [
+    "35.0.0"
+    "36.0.0"
+  ];
   buildToolsVersion = "36.0.0";
   ndkVersion = "27.1.12297006";
 
@@ -43,7 +55,16 @@ let
       "36"
       "35"
     ];
-    buildToolsVersions = [ buildToolsVersion ];
+    buildToolsVersions = buildToolsVersions;
+    # Same story as build-tools: react-native-nitro-modules and
+    # react-native-screens run CMake at configure time and ask for 3.22.1, the
+    # version AGP defaults to. Shipping only 4.1.2 (what nixpkgs gives by
+    # default) fails with "Failed to install the following SDK components:
+    # cmake;3.22.1" — the store SDK is read-only, so Gradle cannot fetch it.
+    cmakeVersions = [
+      "3.22.1"
+      "4.1.2"
+    ];
     ndkVersions = [ ndkVersion ];
     includeNDK = true;
     includeEmulator = withEmulator;

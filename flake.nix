@@ -128,6 +128,7 @@
           default = importShell "default";
           atlassian = importShell "atlassian";
           node = importShell "node";
+          mobile = importShell "mobile";
           python = importShell "python";
         }
       );

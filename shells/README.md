@@ -9,6 +9,7 @@ Project dev shells, entered with `nix develop .#<name>` (or `nix develop` for
 | `default` | editing this config repo (nixfmt, statix, deadnix, nil) |
 | `atlassian` | quick Maven/JDK17 entry for plugin work |
 | `node` | Node 22 + pnpm |
+| `mobile` | React Native / Expo: Android SDK + NDK, JDK 17, cocoapods, maestro, jadx |
 | `python` | Python 3 + uv |
 
 **Relationship to mise:** mise pins *per-project* runtime versions (`.mise.toml`,

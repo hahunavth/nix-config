@@ -58,6 +58,55 @@
   };
   users.users.${userConfig.username}.extraGroups = [ "docker" ];
 
+  # Compressed swap in RAM, tried before the disk swap file from .wslconfig
+  # (higher priority). Typical 2-3x compression on dev workloads (node, JVM,
+  # docker) stretches the 24 GB WSL limit further without touching the disk.
+  #
+  # Not NixOS's `zramSwap`: under WSL its zram-generator runs at boot before
+  # the module can be loaded, so it never emits the swap unit. Three WSL quirks
+  # handled here instead:
+  #   - zram is a module (=m) shipped under /lib/modules, which NixOS's module
+  #     loading ignores (it expects /run/booted-system/kernel-modules) — hence
+  #     MODULE_DIR;
+  #   - the WSL kernel's zram offers only lzo/lzo-rle, no zstd;
+  #   - sized at half of the RAM WSL actually sees (`memory=` in .wslconfig).
+  systemd.services.wsl-zram-swap = {
+    description = "Compressed swap in RAM (zram) for WSL";
+    # Ordered into swap.target, which sysinit.target pulls in — so it must drop
+    # the default After=sysinit.target, or the transaction is cyclic.
+    unitConfig.DefaultDependencies = false;
+    wantedBy = [ "swap.target" ];
+    before = [
+      "swap.target"
+      "shutdown.target"
+    ];
+    conflicts = [ "shutdown.target" ];
+    path = with pkgs; [
+      kmod
+      util-linux
+      gawk
+    ];
+    environment.MODULE_DIR = "/lib/modules";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      modprobe zram
+      if ! swapon --show=NAME --noheadings | grep -q '^/dev/zram0$'; then
+        echo 1 > /sys/block/zram0/reset
+        echo lzo-rle > /sys/block/zram0/comp_algorithm
+        awk '/MemTotal/ { print $2 * 512 }' /proc/meminfo > /sys/block/zram0/disksize
+        mkswap /dev/zram0
+        swapon --priority 5 /dev/zram0
+      fi
+    '';
+    preStop = ''
+      swapoff /dev/zram0 || true
+      echo 1 > /sys/block/zram0/reset || true
+    '';
+  };
+
   # At SYSTEM level because it comes from `self.packages` (only threaded into
   # system specialArgs — see hosts/nixos-desktop/default.nix). GUI runs via WSLg.
   environment.systemPackages = [

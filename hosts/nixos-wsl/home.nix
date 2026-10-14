@@ -13,6 +13,12 @@
   hn.atlassian.enable = true; # Atlassian Plugin SDK + branch-based mise switching
   hn.atuin.enable = true; # Ctrl-R history search (sync dormant until `atuin login`)
 
+  # The Mac caches key passphrases in Keychain (UseKeychain in ssh.nix); Linux
+  # has no equivalent, so run an agent as a systemd user service. With
+  # AddKeysToAgent=yes from ssh.nix, the first ssh/git use after WSL starts
+  # asks for the passphrase once, and the agent remembers it until shutdown.
+  services.ssh-agent.enable = true;
+
   # Merged into the shared globals (node lts, pnpm, bun, java 25/17/8).
   programs.mise.globalConfig.tools = {
     python = "3.13";
@@ -43,5 +49,21 @@
     # The Android SDK + JDK 17 come per project from `nix develop .#mobile`
     # (shells/mobile.nix), loaded by direnv: `use flake ~/nix-config#mobile`.
     watchman
+
+    # Browser inside WSL (window via WSLg, Start-menu entry via
+    # wsl.startMenuLaunchers). Same choice as nixos-desktop.
+    google-chrome # unfree
   ];
+
+  # Make it the handler for links opened from the shell (gh auth, expo,
+  # claude login), instead of falling through to nothing.
+  home.sessionVariables.BROWSER = "google-chrome-stable";
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = "google-chrome.desktop";
+      "x-scheme-handler/http" = "google-chrome.desktop";
+      "x-scheme-handler/https" = "google-chrome.desktop";
+    };
+  };
 }

@@ -54,6 +54,39 @@
     self.packages.${pkgs.stdenv.hostPlatform.system}.orca
   ];
 
+  # Fonts for the WSLg GUI apps (Orca's terminal, Chrome). The base image ships
+  # only DejaVu Sans — no monospace and no Nerd Font, so the starship prompt's
+  # icon glyphs rendered as boxes. Same Nerd Fonts as modules/darwin/fonts.nix,
+  # plus Noto for Japanese/Vietnamese text and emoji.
+  #
+  # Unlike macOS, fontconfig lets us make the Nerd Font the default `monospace`,
+  # so apps that ask for "monospace" (Orca's terminal included) pick it up
+  # without per-app settings.
+  fonts = {
+    packages = with pkgs; [
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.fira-code
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
+    ];
+    fontconfig.defaultFonts = {
+      monospace = [
+        "JetBrainsMono Nerd Font"
+        "Noto Sans Mono CJK JP"
+      ];
+      sansSerif = [
+        "Noto Sans"
+        "Noto Sans CJK JP"
+      ];
+      serif = [
+        "Noto Serif"
+        "Noto Serif CJK JP"
+      ];
+      emoji = [ "Noto Color Emoji" ];
+    };
+  };
+
   # The release this distro was INSTALLED from — a record, not a version to
   # keep current.
   system.stateVersion = "26.05";

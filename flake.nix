@@ -33,6 +33,11 @@
     # /opt/homebrew is owned by nix too. Consumed in modules/darwin/homebrew.
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
 
+    # WSL2 integration for the nixos-wsl host (hosts/nixos-wsl). Same release
+    # branch as the Linux nixpkgs it follows.
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/release-26.05";
+    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs-linux";
+
     # Secrets management (age-encrypted; see modules/home-shared/programs/secrets.nix).
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -105,6 +110,7 @@
       nixosConfigurations = {
         nixos = mkNixos ./hosts/nixos;
         nixos-desktop = mkNixos ./hosts/nixos-desktop;
+        nixos-wsl = mkNixos ./hosts/nixos-wsl;
       };
 
       # Custom derivations (pkgs/), buildable on their own:

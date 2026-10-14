@@ -7,6 +7,8 @@ macOS + NixOS system configuration: [nix-darwin](https://github.com/nix-darwin/n
 
 - Host `KOD-ADMINs-MacBook-Pro` — Apple Silicon work Mac, user `kod_admin`
 - Host `nixos` — headless OrbStack dev VM (`aarch64-linux`); host `nixos-desktop` — `x86_64-linux` XFCE VM
+- Host `nixos-wsl` — `x86_64-linux` NixOS-WSL on the Windows homelab PC (local Docker, GUI via WSLg);
+  repo at `~/nix-config`, apply with `sudo nixos-rebuild switch --flake ~/nix-config#nixos-wsl`
 - Repo lives at `/etc/nix-darwin` (user-owned, no sudo to edit); inside the OrbStack VM the same
   checkout is mounted at `/private/etc/nix-darwin`
 

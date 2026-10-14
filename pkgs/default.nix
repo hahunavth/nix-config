@@ -29,10 +29,12 @@ in
     hash = "sha256-sEAe1eif9qXvIOu8RfZ4MWngEO5yCjU74g4Crd85J3Y=";
   };
 }
-# Electron apps repackaged from upstream .debs — for the nixos-desktop VM.
-# Guarded on the system string so `nix flake check` on the Mac never tries to
-# evaluate an amd64-Linux-only derivation.
+# Electron apps repackaged from upstream .debs/AppImages — for the x86_64 Linux
+# hosts (nixos-desktop, nixos-wsl). Guarded on the system string so
+# `nix flake check` on the Mac never tries to evaluate an amd64-Linux-only
+# derivation.
 // lib.optionalAttrs (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
   claude-desktop = pkgs.callPackage ./claude-desktop { };
   opencode-desktop = pkgs.callPackage ./opencode-desktop { };
+  orca = pkgs.callPackage ./orca { };
 }

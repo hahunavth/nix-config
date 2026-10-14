@@ -29,9 +29,15 @@ let
   buildToolsVersion = "36.0.0";
   ndkVersion = "27.1.12297006";
 
-  # No emulator and no system images: this machine drives a physical device over
-  # adb. Adding `includeEmulator = true;` plus systemImageTypes/abiVersions here
-  # is what an AVD would need (and roughly another 2 GB).
+  # The Mac drives a physical device over adb, so no emulator there. The
+  # x86_64 Linux hosts (nixos-wsl has /dev/kvm; the window shows through WSLg)
+  # also get the emulator + one API 36 image, roughly another 2 GB. Create the
+  # AVD once (it lives in ~/.android/avd, outside the store):
+  #   avdmanager create avd -n pixel -d pixel_7 \
+  #     -k "system-images;android-36;google_apis_playstore;x86_64"
+  #   emulator -avd pixel
+  withEmulator = pkgs.stdenv.hostPlatform.system == "x86_64-linux";
+
   androidComposition = androidPkgs.androidenv.composeAndroidPackages {
     platformVersions = [
       "36"
@@ -40,8 +46,10 @@ let
     buildToolsVersions = [ buildToolsVersion ];
     ndkVersions = [ ndkVersion ];
     includeNDK = true;
-    includeEmulator = false;
-    includeSystemImages = false;
+    includeEmulator = withEmulator;
+    includeSystemImages = withEmulator;
+    systemImageTypes = [ "google_apis_playstore" ];
+    abiVersions = [ "x86_64" ];
     includeSources = false;
   };
 
@@ -78,7 +86,9 @@ pkgs.mkShell {
   # which is what produces "undeclared FP_NAN / uint8_t" in MMKVCore's
   # OpenSSL TUs. Put Xcode's toolchain bin ahead of the wrapper in PATH so
   # xcodebuild's clang lookup finds the matching toolchain.
-  shellHook = ''
+  # macOS only — /usr/bin/xcrun does not exist on Linux, where this hook would
+  # abort the shell.
+  shellHook = lib.optionalString pkgs.stdenv.isDarwin ''
     # Nix's pkgs.clang-wrapper (auto-added by mkShell) and pkgs.apple-sdk set
     # DEVELOPER_DIR / SDKROOT to point at the Nix apple-sdk 14.4 and force the
     # wrapper bin first in PATH. The wrapper hardcodes -cxx-isystem to libcxx

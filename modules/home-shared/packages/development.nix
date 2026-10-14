@@ -12,9 +12,14 @@
     ripgrep
     fd
     jq
+    gh # GitHub CLI (auth, PRs, issues)
     # nix tooling
     nil # Nix language server (LSP)
     nixfmt # Nix formatter
+    # python tooling. uv manages Python projects/installs itself, so it does
+    # NOT need a nix-pinned interpreter to be useful; mise/miniconda still
+    # provide per-project runtimes elsewhere.
+    uv # Astral's Python package + project manager (https://docs.astral.sh/uv/)
     # AI coding agents. Claude Code is deliberately absent: it self-updates,
     # which a nix-managed binary cannot do.
     codex # OpenAI Codex CLI

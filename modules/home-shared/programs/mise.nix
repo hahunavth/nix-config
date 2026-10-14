@@ -43,6 +43,9 @@
       tools = {
         node = "lts";
         pnpm = "11";
+        # Bun is an alternative JS runtime + package manager; it sits next to
+        # node/pnpm rather than replacing them. "1" tracks the latest 1.x.
+        bun = "1";
         # All three JDKs are installed; the first is the global default.
         # Atlassian plugin projects pin the matching version in their .mise.toml.
         java = [

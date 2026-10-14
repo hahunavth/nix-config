@@ -45,8 +45,11 @@
   # `docker --context default`, or a project with DOCKER_HOST in .envrc.
   hn.remoteDocker = {
     enable = true;
-    contexts.homelab = "ssh://homelab-tailscale";
-    defaultContext = "homelab";
+    contexts = {
+      homelab = "ssh://homelab-tailscale";
+      homelab-tailscale-claude = "ssh://homelab-tailscale-claude";
+    };
+    defaultContext = "homelab-tailscale-claude";
   };
 
   # Replugging the external SSD leaves every shell that was sitting on it with an

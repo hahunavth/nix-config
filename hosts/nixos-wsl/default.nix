@@ -27,8 +27,18 @@
   # identity so home-manager lands in /home/<username> like every other host.
   # Changing this needs one WSL restart (docs/runbooks/add-nixos-host.md, WSL).
   wsl.defaultUser = userConfig.username;
-  # Let Windows .exe's (code.exe, explorer.exe, clip.exe) run from the shell.
-  wsl.interop.includePath = true;
+  # Do NOT append the whole Windows PATH (wsl.conf appendWindowsPath). It
+  # carries ~40 dirs, several shadowing the Linux toolchain: Windows node, a
+  # broken global pnpm shim, CRLF corepack, JDK 8, Python, Git, OpenSSH,
+  # ripgrep — and it lands ahead of the mise shims in non-interactive shells
+  # (agents, scripts), where `mise activate` never runs. Needs a WSL restart.
+  wsl.wslConf.interop.appendWindowsPath = false;
+  wsl.interop.includePath = false;
+  # Windows interop itself stays on; re-add only the few Windows tools worth
+  # having, at the END of PATH so they can never shadow a Linux binary.
+  environment.extraInit = ''
+    export PATH="$PATH:/mnt/c/Windows/System32:/mnt/c/Windows:/mnt/c/Windows/System32/WindowsPowerShell/v1.0:/mnt/c/Users/${userConfig.username}/AppData/Local/Programs/Microsoft VS Code/bin"
+  '';
   # Expose .desktop entries where WSLg looks, so GUI apps (Orca) get Windows
   # Start-menu shortcuts under "NixOS" — pinnable to the taskbar/Start.
   wsl.startMenuLaunchers = true;
@@ -53,6 +63,12 @@
   environment.systemPackages = [
     self.packages.${pkgs.stdenv.hostPlatform.system}.orca
   ];
+
+  # The checkout lives at ~/nix-config, but app repos shared with the Mac load
+  # dev shells by the Mac's path (`use flake /etc/nix-darwin#mobile` in their
+  # .envrc). Point that path here so those .envrc files work unchanged and
+  # give the project adb, ANDROID_HOME and JDK 17.
+  environment.etc."nix-darwin".source = "/home/${userConfig.username}/nix-config";
 
   # Fonts for the WSLg GUI apps (Orca's terminal, Chrome). The base image ships
   # only DejaVu Sans — no monospace and no Nerd Font, so the starship prompt's

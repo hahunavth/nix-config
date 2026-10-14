@@ -28,6 +28,12 @@ in
 appimageTools.wrapType2 {
   inherit pname version src;
 
+  # No GPU plumbing here on purpose: on this PC (AMD iGPU) Mesa's d3d12 driver
+  # fails to create a device even OUTSIDE the sandbox (glxinfo with
+  # GALLIUM_DRIVER=d3d12 -> "failed to create drisw screen"), so the whole
+  # distro renders with llvmpipe. Binding /usr/lib/wsl into the sandbox gains
+  # nothing until that works system-wide.
+
   # Desktop entry + icons, so WSLg adds Orca to the Windows Start menu.
   extraInstallCommands = ''
     desktop=$(find ${contents} -maxdepth 1 -name '*.desktop' | head -1)

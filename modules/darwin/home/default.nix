@@ -21,5 +21,6 @@
     ./stale-cwd.nix # re-enter the cwd after a volume remount (hn.staleCwdRecovery)
     ./conda.nix # miniconda shell init (macOS Homebrew cask)
     ./login-shell.nix # ~/.zprofile: Homebrew shellenv + OrbStack init
+    ./windsurf-acp.nix # Windsurf IDE ACP agent registry (~/.windsurf/acp/registry.json)
   ];
 }

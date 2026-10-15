@@ -58,6 +58,30 @@
   };
   users.users.${userConfig.username}.extraGroups = [ "docker" ];
 
+  # Lets Windows reach Docker published ports under mirrored networking.
+  # Windows→WSL `localhost` traffic arrives on loopback0 with source
+  # 127.0.0.1; Docker's PREROUTING DNAT forwards it into the bridge where
+  # the container drops it as a martian (and replies could never route back
+  # to Windows anyway). Skipping conntrack for loopback0 bypasses the DNAT,
+  # so the packet lands on docker-proxy's 0.0.0.0:<port> socket instead.
+  systemd.services.wsl-docker-loopback = {
+    description = "Route Windows localhost traffic to docker-proxy (WSL mirrored mode)";
+    after = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.iptables ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      iptables -t raw -C PREROUTING -i loopback0 -p tcp -j NOTRACK 2>/dev/null \
+        || iptables -t raw -I PREROUTING -i loopback0 -p tcp -j NOTRACK
+    '';
+    preStop = ''
+      iptables -t raw -D PREROUTING -i loopback0 -p tcp -j NOTRACK || true
+    '';
+  };
+
   # Compressed swap in RAM, tried before the disk swap file from .wslconfig
   # (higher priority). Typical 2-3x compression on dev workloads (node, JVM,
   # docker) stretches the 24 GB WSL limit further without touching the disk.
